@@ -40,6 +40,7 @@ OSflag = 'linux'
 #OSflag = 'mac'
 # =====================================================
 
+# TODO: convert to config file method
 pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
 
 

@@ -55,6 +55,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
 args = parser.parse_args()
 
+# TODO: convert to config file method
 pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
 fmin, fmax, winLen_Sec, fracOverlap, nfft = setSgramParams(key)
 

@@ -28,6 +28,7 @@ args = parser.parse_args()
 #%%
 ### do not change these ###
 
+# TODO: convert to config file method
 pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
 
 
