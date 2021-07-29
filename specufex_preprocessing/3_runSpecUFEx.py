@@ -6,26 +6,24 @@ Created on Wed May 19 12:02:51 2021
 @author: theresasawi
 """
 
+import argparse
+
 import h5py
-import numpy as np
-import sys
-
-import pandas as pd
 from matplotlib import pyplot as plt
+import numpy as np
+import pandas as pd
 
-sys.path.append('functions/')
-from setParams import setParams
+from functions.setParams import setParams
 # from generators import gen_sgram_QC
 
-import tables
-tables.file._open_files.close_all()
 from specufex import BayesianNonparametricNMF, BayesianHMM
 
 
 #%% load project variables: names and paths
 
-key = sys.argv[1]
-#
+parser = argparse.ArgumentParser()
+parser.add_argument("config_filename", help="Path to configuration file.")
+args = parser.parse_args()
 
 #%%
 ### do not change these ###
@@ -124,38 +122,37 @@ print(fingerprints[0])
 print('writing all output to h5')
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
-
 ##fingerprints are top folder
-if 'fingerprints' in fileLoad.keys():
-    del fileLoad["fingerprints"]
-fp_group = fileLoad.create_group('fingerprints')
+    if 'fingerprints' in fileLoad.keys():
+        del fileLoad["fingerprints"]
+    fp_group = fileLoad.create_group('fingerprints')
 
-if 'SpecUFEX_output' in fileLoad.keys():
-    del fileLoad["SpecUFEX_output"]
-out_group = fileLoad.create_group("SpecUFEX_output")
+    if 'SpecUFEX_output' in fileLoad.keys():
+        del fileLoad["SpecUFEX_output"]
+    out_group = fileLoad.create_group("SpecUFEX_output")
 
-# write fingerprints: ===============================
-for i, evID in enumerate(fileLoad['spectrograms']):
-    fp_group.create_dataset(name= evID, data=fingerprints[i])
-    #ACM_group.create_dataset(name=evID,data=As[i]) #ACM
-    #STM_group.create_dataset(name=evID,data=gam[i]) #STM
+    # write fingerprints: ===============================
+    for i, evID in enumerate(fileLoad['spectrograms']):
+        fp_group.create_dataset(name= evID, data=fingerprints[i])
+        #ACM_group.create_dataset(name=evID,data=As[i]) #ACM
+        #STM_group.create_dataset(name=evID,data=gam[i]) #STM
 
-# write the SpecUFEx out: ===========================
-# maybe include these, but they are not yet tested.
-#ACM_group = fileLoad.create_group("SpecUFEX_output/ACM")
-#STM_group = fileLoad.create_group("SpecUFEX_output/STM")
+    # write the SpecUFEx out: ===========================
+    # maybe include these, but they are not yet tested.
+    #ACM_group = fileLoad.create_group("SpecUFEX_output/ACM")
+    #STM_group = fileLoad.create_group("SpecUFEX_output/STM")
 
-# for i, evID in enumerate(fileLoad['spectrograms']):
-#     ACM_group.create_dataset(name=evID,data=As[i]) #ACM
-#     STM_group.create_dataset(name=evID,data=gam[i]) #STM
+    # for i, evID in enumerate(fileLoad['spectrograms']):
+    #     ACM_group.create_dataset(name=evID,data=As[i]) #ACM
+    #     STM_group.create_dataset(name=evID,data=gam[i]) #STM
 
-gain_group = fileLoad.create_group("SpecUFEX_output/ACM_gain")
-W_group                      = fileLoad.create_group("SpecUFEX_output/W")
-EB_group                     = fileLoad.create_group("SpecUFEX_output/EB")
-## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
-#RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
+    gain_group = fileLoad.create_group("SpecUFEX_output/ACM_gain")
+    W_group                      = fileLoad.create_group("SpecUFEX_output/W")
+    EB_group                     = fileLoad.create_group("SpecUFEX_output/EB")
+    ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
+    #RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
 
-W_group.create_dataset(name='W',data=nmf.EW)
-EB_group.create_dataset(name=evID,data=hmm.EB)
-gain_group.create_dataset(name='gain',data=nmf.gain) #same for all data
-# RMM_group.create_dataset(name=evID,data=RMM)
+    W_group.create_dataset(name='W',data=nmf.EW)
+    EB_group.create_dataset(name=evID,data=hmm.EB)
+    gain_group.create_dataset(name='gain',data=nmf.gain) #same for all data
+    # RMM_group.create_dataset(name=evID,data=RMM)

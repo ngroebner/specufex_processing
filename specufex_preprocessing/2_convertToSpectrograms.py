@@ -14,22 +14,26 @@ example: Parkfield repeaters::
 
 
 
+import argparse
+import glob
+import os
+
 import h5py
 import numpy as np
-import sys
-import os
+import obspy
 import pandas as pd
-sys.path.append('functions/')
-import tables
-tables.file._open_files.close_all()
-from setParams import setParams,setSgramParams
-from generators import gen_sgram_QC
+import yaml
+
+from functions.setParams import setParams,setSgramParams
+from functions.generators import gen_sgram_QC
 
 # ============================================
 # STUFF to change when we go to config.py method
 #%% load project variables: names and paths
 
-key = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument("config_filename", help="Path to configuration file.")
+args = parser.parse_args()
 
 # pick the operating system, for pandas.to_csv
 OSflag = 'linux'

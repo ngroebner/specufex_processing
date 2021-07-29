@@ -38,29 +38,22 @@ Updates:
 @author: theresasawi
 """
 # ===================================================
+import argparse
+
 import h5py
-
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
-import sys
-# this will close any existing hdf5 _open_files
-# if we use while statements, we won't have to do this
-import tables
-tables.file._open_files.close_all()
-sys.path.append('./functions')
-sys.path.append('../')
-
-from setParams import setParams, setSgramParams
-from generators import gen_sgram_QC
+from functions.setParams import setParams, setSgramParams
+from functions.generators import gen_sgram_QC
 
 
 #%% load project variables: names and paths
 
-key = sys.argv[1]
-
+parser = argparse.ArgumentParser()
+parser.add_argument("config_filename", help="Path to configuration file.")
+args = parser.parse_args()
 
 pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
 fmin, fmax, winLen_Sec, fracOverlap, nfft = setSgramParams(key)

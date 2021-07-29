@@ -6,30 +6,18 @@ example: Parkfield repeaters::
 @author: theresasawi
 """
 
-
 import argparse
+import glob
+import os
+
 import h5py
 import numpy as np
-import glob
-import sys
 import obspy
-import os
 import pandas as pd
-
-# added __init__.py to the functions subdirectory
-# so the functions can be imported in the standard
-# way without altering the path
-from functions.generators import gen_wf_from_folder
-
-# This is dangeroous - could close files in use by other programs
-# Better to make sure hdf5 files are only opened in a context manager
-# so that they are automatically cleaned up
-#import tables
-#tables.file._open_files.close_all()
-
 import yaml
 
-# command line argument instead of hard coding to config file
+from functions.generators import gen_wf_from_folder
+
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
 args = parser.parse_args()
