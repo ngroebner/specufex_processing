@@ -187,50 +187,16 @@ if os.path.exists(pathSgram_cat):
 
 cat_keep_sgram.to_csv(pathSgram_cat)
 
-# print('formatting CSV catalog for ',OSflag)
-# if OSflag=='linux':
-#     cat_keep_sgram.to_csv(pathSgram_cat,line_terminator='\n')
-# elif OSflag=='mac':
-#     cat_keep_sgram.to_csv(pathSgram_cat)
-
-
-'''
-NOT SURE WE NEED THIS--- test removing it on mac and linux
-line_terminatorstr, optional
-The newline character or character sequence to use in the output file.
-Defaults to os.linesep, which depends on the OS
-in which this method is called (‘\n’ for linux, ‘\r\n’ for Windows, i.e.).
-so easiest fix may be to try to insert line_terminator='\n'
-in lines ~180 or 188 in 1_ and 2_.py
-? wherever “to_csv” is
-'''
 # save local catalog to original datafile
 with h5py.File(dataH5_path,'a') as h5file:
     if f'catalog/cat_by_sta/{station}' in h5file.keys():
         del h5file[f"catalog/cat_by_sta/{station}"]
     catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
     dataframe2hdf(cat_keep_sgram, catalog_sta_group)
-"""    for col in ["evID", "timestamp", "filename"]:
-        if col == "evID":
-            catalog_sta_group.create_dataset(name=col,data=cat_keep_sgram[col])
-        else:
-            catalog_sta_group.create_dataset(
-                name=col,
-                data=np.array(cat_keep_sgram[col],dtype='S')
-            )"""
 
 # save local catalog to new ML datafile
 with h5py.File(SpecUFEx_H5_path,'a') as h5file:
     if f'catalog/cat_by_sta/{station}' in h5file.keys():
         del h5file[f"catalog/cat_by_sta/{station}"]
-
     catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
-
     dataframe2hdf(cat_keep_sgram, catalog_sta_group)
-
-"""    for col in cat_keep_sgram.columns:
-        if col == 'datetime':
-            catalog_sta_group.create_dataset(name='datetime',data=np.array(cat_keep_sgram['datetime'],dtype='S'))
-
-        else:
-            catalog_sta_group.create_dataset(name=col,data=cat_keep_sgram[col])"""

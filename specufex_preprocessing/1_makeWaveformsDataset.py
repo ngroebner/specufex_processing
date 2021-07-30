@@ -83,18 +83,6 @@ with h5py.File(dataH5_path,'a') as h5file:
     global_catalog_group =  h5file.create_group("catalog/global_catalog")
     dataframe2hdf(cat, global_catalog_group)
 
-    """
-    for col in ["evID", "timestamp", "filename"]:
-        if col == "evID":
-            global_catalog_group.create_dataset(name=col,data=cat[col])
-        else: ## if there are other columns in your catalog
-        #that are stings, then you may need to extend conditional statement
-        # to use the dtype='S' flag in the next line
-            global_catalog_group.create_dataset(name=col,
-                                                data=np.array(cat[col],
-                                                dtype='S'))
-        """
-
     waveforms_group  = h5file.create_group("waveforms")
     station_group = h5file.create_group(f"waveforms/{station}")
     channel_group = h5file.create_group(f"waveforms/{station}/{channel}")
@@ -112,30 +100,6 @@ with h5py.File(dataH5_path,'a') as h5file:
         else:
             print(ev.evID, " not saved")
 
-    """
-    for n, data in enumerate(gen_wf):
-        if n%500==0:
-            print(n, '/', len(wf_filelist))
-        channel_group.create_dataset(name= evID, data=data)
-
-    while n <= len(wf_filelist): # not sure a better way to execute this? But it works
-
-        try:   #catch generator "stop iteration" error
-            #these all defined in generator at top of script
-            data, n = next(gen_wf)
-
-            if n%500==0:
-                print(n, '/', len(wf_filelist))
-            # if evID not in group, add dataset to wf group
-            if evID not in channel_group:
-                channel_group.create_dataset(name= evID, data=data)
-                evID_keep.append(evID)
-            elif evID in channel_group:
-                dupl_evID += 1
-
-        except StopIteration: #handle generator error
-            break
-    """
     processing_group = h5file.create_group(f"{station}/processing_info")
     processing_group.create_dataset(name= "sampling_rate_Hz", data=sampling_rate)#,dtype='S')
     # processing_group.create_dataset(name= "station_info", data=station_info)
