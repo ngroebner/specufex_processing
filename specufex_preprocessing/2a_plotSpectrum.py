@@ -38,40 +38,76 @@ Updates:
 @author: theresasawi
 """
 # ===================================================
-import argparse
-
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import sys
+# this will close any existing hdf5 _open_files
+# if we use while statements, we won't have to do this
+#import tables
+#tables.file._open_files.close_all()
+sys.path.append('./functions')
+sys.path.append('../')
 
-from functions.setParams import setParams, setSgramParams
-from functions.generators import gen_sgram_QC
+#from setParams import setParams, setSgramParams
+from generators import gen_sgram_QC
+import yaml
+import argparse
 
-
-#%% load project variables: names and paths
-
+# command line argument instead of hard coding to config file
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
 args = parser.parse_args()
-
-# TODO: convert to config file method
-pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
-fmin, fmax, winLen_Sec, fracOverlap, nfft = setSgramParams(key)
+path2config = sys.argv[1] #'../config_tmp.yml'
 
 
-pathCatWF = pathCat
+#%% load config file
+
+with open(args.config_filename, 'r') as stream:
+
+    try:
+        # print(yaml.safe_load(stream))
+        config = yaml.safe_load(stream)
+
+    except yaml.YAMLError as exc:
+        print(exc)
 
 
-dataH5_name = f'data_{key}.hdf5'
-dataH5_path = pathProj + '/H5files/' + dataH5_name
+variable_list = []
+value_list = []
 
 
-SpecUFEx_H5_name = f'SpecUFEx_{key}.hdf5'
-SpecUFEx_H5_path = pathProj + '/H5files/' + SpecUFEx_H5_name
+for headers in config.values():
+
+    for value_dict in headers:
+        print(value_dict)
+
+        for k, v in value_dict.items():
+            print(v,k)
+
+            variable_list.append(k)
+            value_list.append(v)
+
+## assign values to variables
+for index, value in enumerate(value_list):
+    exec(f"{variable_list[index]} = value")
+
+# pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
+# fmin, fmax, winLen_Sec, fracOverlap, nfft = setSgramParams(key)
+
+# pathCatWF = pathCat
+#%%
+
+dataH5_name =  'data_' + h5name #f'data_{key}.hdf5'
+dataH5_path = projectPath + 'H5files/' + dataH5_name
 
 
-pathSgram_cat = pathProj + f'sgram_cat_out_{key}.csv'
+SpecUFEx_H5_name = 'SpecUFEx_' + h5name #f'SpecUFEx_{key}.hdf5'
+SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
+
+
+pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
 
 
 #%% get wf catalog
@@ -154,7 +190,7 @@ while n <= len(evID_list): ## not sure a better way to execute this? But it work
 
         spectra_for_avg.append(np.array(sgram))
 
-        if n%500==0:
+        if n%5==0:
             plt.figure()
             plt.pcolormesh(tSTFT,fSTFT,sgram,shading='auto')
             plt.xlabel('time (s)')

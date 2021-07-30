@@ -6,42 +6,74 @@ Created on Wed May 19 12:02:51 2021
 @author: theresasawi
 """
 
-import argparse
-
 import h5py
-from matplotlib import pyplot as plt
 import numpy as np
-import pandas as pd
+import sys
 
-from functions.setParams import setParams
+import pandas as pd
+from matplotlib import pyplot as plt
+
+# sys.path.append('functions/')
+# from setParams import setParams
 # from generators import gen_sgram_QC
 
+import tables
+tables.file._open_files.close_all()
 from specufex import BayesianNonparametricNMF, BayesianHMM
 
 
 #%% load project variables: names and paths
+import yaml
 
-parser = argparse.ArgumentParser()
-parser.add_argument("config_filename", help="Path to configuration file.")
-args = parser.parse_args()
+path2config = sys.argv[1] #'../config_test.yml' #
 
-#%%
-### do not change these ###
+with open(path2config, 'r') as stream:
+    try:
+        # print(yaml.safe_load(stream))
 
-# TODO: convert to config file method
-pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
+        config = yaml.safe_load(stream)
+
+    except yaml.YAMLError as exc:
+        print(exc)
+
+variable_list = []
+value_list = []
 
 
+for headers in config.values():
 
-dataH5_name = f'data_{key}.hdf5'
-dataH5_path = pathProj + '/H5files/' + dataH5_name
-SpecUFEx_H5_name = f'SpecUFEx_{key}.hdf5'
-SpecUFEx_H5_path = pathProj + '/H5files/' + SpecUFEx_H5_name
-sgramMatOut = pathProj + 'matSgrams/'## for testing
-pathWf_cat  = pathProj + 'wf_cat_out.csv'
+    for value_dict in headers:
+        print(value_dict)
+
+        for k, v in value_dict.items():
+            print(v,k)
+
+            variable_list.append(k)
+            value_list.append(v)
+
+## assign values to variables
+for index, value in enumerate(value_list):
+    exec(f"{variable_list[index]} = value")
+# key = sys.argv[1]
+# #
+#
+# #%%
+# ### do not change these ###
+#
+# pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
+#
+
+
+dataH5_name =  'data_' + h5name #f'data_{key}.hdf5'
+dataH5_path = projectPath + 'H5files/' + dataH5_name
+SpecUFEx_H5_name = 'SpecUFEx_' + h5name #f'SpecUFEx_{key}.hdf5'
+SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
+
+sgramMatOut = projectPath + 'matSgrams/'## for testing
+pathWf_cat  = projectPath + 'wf_cat_out.csv'
 
 # Why is this here-- it is not being used.
-pathSgram_cat = pathProj + f'sgram_cat_out_{key}.csv'
+pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
 
 sgram_cat = pd.read_csv(pathSgram_cat)
 
@@ -123,7 +155,8 @@ print(fingerprints[0])
 print('writing all output to h5')
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
-##fingerprints are top folder
+
+    ##fingerprints are top folder
     if 'fingerprints' in fileLoad.keys():
         del fileLoad["fingerprints"]
     fp_group = fileLoad.create_group('fingerprints')

@@ -14,52 +14,87 @@ example: Parkfield repeaters::
 
 
 
-import argparse
-import glob
-import os
-
 import h5py
 import numpy as np
-import obspy
+import sys
+import os
 import pandas as pd
+sys.path.append('functions/')
+import tables
+tables.file._open_files.close_all()
+from setParams import setParams,setSgramParams
+from generators import gen_sgram_QC
+import argparse
+
 import yaml
 
-from functions.setParams import setParams,setSgramParams
-from functions.generators import gen_sgram_QC
+import argparse
 
-# ============================================
-# STUFF to change when we go to config.py method
-#%% load project variables: names and paths
-
+# command line argument instead of hard coding to config file
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
 args = parser.parse_args()
+path2config = sys.argv[1] #'../config_tmp.yml'
 
-# pick the operating system, for pandas.to_csv
-OSflag = 'linux'
-#OSflag = 'mac'
-# =====================================================
-
-# TODO: convert to config file method
-pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
+# path2config = '../config_test.yml'
 
 
-pathCatWF = pathCat
+#%% load config file
+
+with open(args.config_filename, 'r') as stream:
+# with open(path2config, 'r') as stream:
+    
+    try:
+        # print(yaml.safe_load(stream))
+
+        config = yaml.safe_load(stream)
+
+    except yaml.YAMLError as exc:
+        print(exc)
+#%% Go through levels of config file (headers), and save all values
+## to the same list. Then, assign those values to standard variables
 
 
-dataH5_name = f'data_{key}.hdf5'
-dataH5_path = pathProj + '/H5files/' + dataH5_name
+variable_list = []
+value_list = []
 
 
-SpecUFEx_H5_name = f'SpecUFEx_{key}.hdf5'
-SpecUFEx_H5_path = pathProj + '/H5files/' + SpecUFEx_H5_name
+for headers in config.values():
+
+    for value_dict in headers:
+        print(value_dict)
+
+        for k, v in value_dict.items():
+            print(v,k)
+
+            variable_list.append(k)
+            value_list.append(v)
+
+
+
+## assign values to variables
+for index, value in enumerate(value_list):
+    exec(f"{variable_list[index]} = value")
+
+
+
+#%%
+
+
+
+dataH5_name =  'data_' + h5name #f'data_{key}.hdf5'
+dataH5_path = projectPath + 'H5files/' + dataH5_name
+
+
+SpecUFEx_H5_name = 'SpecUFEx_' + h5name #f'SpecUFEx_{key}.hdf5'
+SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
 
 # ## for testing
 # sgramMatOut = pathProj + 'matSgrams/'
 
 
-pathWf_cat  = pathProj + 'wf_cat_out.csv'
-pathSgram_cat = pathProj + f'sgram_cat_out_{key}.csv'
+pathWf_cat  = projectPath + 'wf_cat_out.csv'
+pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
 
 
 #%% get wf catalog
@@ -70,7 +105,7 @@ evID_list = list(wf_cat.event_ID)
 print('length of event file list: ',len(evID_list))
 
 #%% get sgram params
-fmin, fmax, winLen_Sec, fracOverlap, nfft = setSgramParams(key)
+#fmin, fmax, winLen_Sec, fracOverlap, nfft = setSgramParams(key)
 
 with h5py.File(dataH5_path,'r+') as fileLoad:
 
@@ -213,11 +248,13 @@ except:
 if os.path.exists(pathSgram_cat):
     os.remove(pathSgram_cat)
 
-print('formatting CSV catalog for ',OSflag)
-if OSflag=='linux':
-    cat_keep_sgram.to_csv(pathSgram_cat,line_terminator='\n')
-elif OSflag=='mac':
-    cat_keep_sgram.to_csv(pathSgram_cat)
+cat_keep_sgram.to_csv(pathSgram_cat)
+
+# print('formatting CSV catalog for ',OSflag)
+# if OSflag=='linux':
+#     cat_keep_sgram.to_csv(pathSgram_cat,line_terminator='\n')
+# elif OSflag=='mac':
+#     cat_keep_sgram.to_csv(pathSgram_cat)
 
 
 '''

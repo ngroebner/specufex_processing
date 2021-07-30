@@ -26,30 +26,65 @@ import scipy.signal
 
 
 
-def getEventID(path,key):
+def getEventID(path,key,eventID_string):
     """
     Generate unique event ID based on filename
-    
+
 
     """
+    evID = eval(eventID_string)
+    # print(evID)
 
-    
-    if 'Parkfield' in key:
+    # if 'Parkfield' in key:
+    #
+    #     evID = path.split('/')[-1].split('.')[-1]
+    #
+    # else:## default:: event ID is the waveform filename
+    #
+    #     evID  = path.split('/')[-1].split('.')[0]
 
-        evID = path.split('/')[-1].split('.')[-1]
-        
-    else:## default:: event ID is the waveform filename 
-        
-        evID  = path.split('/')[-1].split('.')[0]            
-    
 
     return evID
 
 
 #%%
 
+def load_wf(filename, lenData, channel_ID=None):
+    """Loads a waveform file and returns the data.
 
-def gen_wf_from_folder(wf_filelist,key,lenData,channel_ID):
+    Arguments
+    ---------
+    filename: str
+        Filename to load
+    lenData: int
+        Number of samples in the file. Must be uniform for all files.
+    channel_ID: int
+        If the fileis an obspy stream, this is the desired channel.
+    """
+    if ".txt" in filename:
+        data = np.loadtxt(filename)
+    else: #catch loading errors
+        st = obspy.read(filename)
+        ### REMOVE RESPONSE ??
+        st.detrend('demean')
+        data = st[channel_ID].data
+
+    #make sure data same length
+    Nkept = 0
+    if len(data)==lenData:
+        return data
+    #Parkfield is sometimes one datapoint off
+    elif np.abs(len(data) - lenData) ==1:
+        data = data[:-1]
+        Nkept += 1
+        return data
+
+    else:
+        print(filename, ': data wrong length')
+        print(f"this event: {len(data)}, not {lenData}")
+        return None
+
+def gen_wf_from_folder(wf_filelist,lenData,channel_ID):
     """
     Note
     ----------
@@ -58,8 +93,7 @@ def gen_wf_from_folder(wf_filelist,key,lenData,channel_ID):
     Parameters
     ----------
     wf_filelist : list of paths to waveforms
-    key : project key name
-    lenData : number of sampels in data (must be same for all data)
+    lenData : number of samples in data (must be same for all data)
     channel_ID : for obspy streams, this is the index of the desired channel
 
     Yields
@@ -75,64 +109,34 @@ def gen_wf_from_folder(wf_filelist,key,lenData,channel_ID):
     NwrongLen = 0
 
     for i, path in enumerate(wf_filelist):
-
-        
-        evID = getEventID(path,key)
-        
-        try: #catch loading errors
-
+        if ".txt" in path:
+            data = np.loadtxt(path)
+        else: #catch loading errors
             st = obspy.read(path)
-
             ### REMOVE RESPONSE ??
-
             st.detrend('demean')
+            data = st[channel_ID].data
+
+        #make sure data same length
+        if len(data)==lenData:
+            Nkept += 1
+            if i%100==0:
+                print(f"{i}/{len(wf_filelist)}")
+            yield data, Nkept
+
+        #Parkfield is sometimes one datapoint off
+        elif np.abs(len(data) - lenData) ==1:
+            data = data[:-1]
+            Nkept += 1
+            yield data, Nkept
+
+        else:
+            NwrongLen += 1
+            print(NwrongLen, ' data wrong length')
+            print(f"this event: {len(data)}, not {lenData}")
 
 
-
-
-            #####            #####            #####            #####
-            ### MAKE NEW FOR EACH DATASET
-            #####            #####            #####            #####
-            if 'Parkfield' or 'GeysersNW' or 'GeysersNW_filt' in key:
-
-                data = st[channel_ID].data
-
-                
-            #####            #####            #####            #####
-                        #####            #####            #####            #####
-            #####            #####            #####            #####
-
-
-             #make sure data same length
-            if len(data)==lenData:
-
-                Nkept += 1
-
-                yield data, evID, Nkept
-
-                if i%100==0:
-                    print(f"{i}/{len(wf_filelist)}")
-
-            #Parkfield is sometimes one datapoint off
-            elif np.abs(len(data) - lenData) ==1:
-
-                data = data[:-1]
-                Nkept += 1
-                yield data, evID, Nkept
-
-            else:
-                NwrongLen += 1
-                print(NwrongLen, ' data wrong length')
-                print(f"this event: {len(data)}, not {lenData}")
-
-
-        except ValueError: #some of the data are corrupt; unloadable
-            Nerr +=1
-            print(Nerr, ". File ", path, " unloadable")
-            pass
-
-
-#%% make sgram generator
+# make sgram generator
 def gen_sgram_QC(key,evID_list,dataH5_path,trim=True,saveMat=False,sgramOutfile='.',**args):
 
     fs=args['fs']
@@ -153,7 +157,6 @@ def gen_sgram_QC(key,evID_list,dataH5_path,trim=True,saveMat=False,sgramOutfile=
         with h5py.File(dataH5_path,'a') as fileLoad:
             stations=args['station']
             data = fileLoad[f"waveforms/{stations}/{args['channel']}"].get(str(evID))[:]
-
 
 
         fSTFT, tSTFT, STFT_raw = sp.signal.spectrogram(x=data,
