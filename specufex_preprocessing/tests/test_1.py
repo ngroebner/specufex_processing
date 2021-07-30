@@ -4,16 +4,17 @@ import subprocess
 import h5py
 
 # to compare hash of output file to true file
-
+def gethash(filename):
+    with open(filename, "rb") as f:
+        buf = f.read()
+    hasher = hashlib.md5()
+    hasher.update(buf)
+    return hasher.hexdigest()
 
 def test_makeWaveforms():
-
-    def gethash(filename):
-        with open(filename, "rb") as f:
-            buf = f.read()
-        hasher = hashlib.md5()
-        hasher.update(buf)
-        return hasher.hexdigest()
+    """Tests 1_makeWaveformsDataset.py
+    Only tests that the generated catalog is correct at this point
+    """
 
     # run the script
     subprocess.run([
@@ -34,3 +35,20 @@ def test_makeWaveforms():
     # maybe some date stamp or something
     #assert h5hash == trueh5hash
     assert wfhash == truewfhash
+
+def test_convertToSpectrograms():
+    """Tests 2_convertToSpectrograms.py
+    Only tests that the generated catalog is correct at this point
+    """
+    # run the script
+    ret = subprocess.run([
+        "python",
+        "../2_convertToSpectrograms.py",
+        "config_test1.yml"
+    ])
+
+    truehash = gethash("test1/results/sgram_cat_out_test1_true.csv")
+    hash = gethash("test1/results/sgram_cat_out_test1.csv")
+
+    assert hash == truehash
+

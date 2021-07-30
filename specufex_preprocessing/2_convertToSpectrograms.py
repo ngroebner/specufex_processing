@@ -12,125 +12,82 @@ example: Parkfield repeaters::
 @author: theresasawi
 """
 
-
+import argparse
+import os
+import sys
 
 import h5py
 import numpy as np
-import sys
-import os
 import pandas as pd
-sys.path.append('functions/')
-import tables
-tables.file._open_files.close_all()
-from setParams import setParams,setSgramParams
-from generators import gen_sgram_QC
-import argparse
-
 import yaml
 
-import argparse
+from functions import dataframe2hdf
+from functions.generators import gen_sgram_QC
 
 # command line argument instead of hard coding to config file
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
 args = parser.parse_args()
-path2config = sys.argv[1] #'../config_tmp.yml'
 
-# path2config = '../config_test.yml'
-
-
-#%% load config file
-
+# load config file
 with open(args.config_filename, 'r') as stream:
-# with open(path2config, 'r') as stream:
-    
     try:
-        # print(yaml.safe_load(stream))
-
         config = yaml.safe_load(stream)
-
     except yaml.YAMLError as exc:
         print(exc)
-#%% Go through levels of config file (headers), and save all values
-## to the same list. Then, assign those values to standard variables
 
+# pull out config values for conciseness
+path_config = config["paths"]
+key = path_config["key"]
 
-variable_list = []
-value_list = []
+data_config = config['dataParams']
+station = data_config["station"]
+channel = data_config["channel"]
+channel_ID = data_config["channel_ID"]
+sampling_rate = data_config["sampling_rate"]
 
+sgram_config = config["sgramParams"]
+nfft = sgram_config["nfft"]
+fmin, fmax = sgram_config["fmin"], sgram_config["fmax"]
 
-for headers in config.values():
+# build path strings
+dataH5_name = f'data_{key}.h5'
+projectPath = path_config["projectPath"]
+pathWF = path_config["pathWF"]
 
-    for value_dict in headers:
-        print(value_dict)
-
-        for k, v in value_dict.items():
-            print(v,k)
-
-            variable_list.append(k)
-            value_list.append(v)
-
-
-
-## assign values to variables
-for index, value in enumerate(value_list):
-    exec(f"{variable_list[index]} = value")
-
-
-
-#%%
-
-
-
-dataH5_name =  'data_' + h5name #f'data_{key}.hdf5'
+dataH5_name =  'data_' + path_config["h5name"] #f'data_{key}.hdf5'
 dataH5_path = projectPath + 'H5files/' + dataH5_name
-
-
-SpecUFEx_H5_name = 'SpecUFEx_' + h5name #f'SpecUFEx_{key}.hdf5'
+SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"] #f'SpecUFEx_{key}.hdf5'
 SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
-
-# ## for testing
-# sgramMatOut = pathProj + 'matSgrams/'
-
-
 pathWf_cat  = projectPath + 'wf_cat_out.csv'
 pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
 
-
-#%% get wf catalog
-
+# get wf catalog
 wf_cat = pd.read_csv(pathWf_cat)
-evID_list = list(wf_cat.event_ID)
+evID_list = list(wf_cat.evID)
 
 print('length of event file list: ',len(evID_list))
 
-#%% get sgram params
-#fmin, fmax, winLen_Sec, fracOverlap, nfft = setSgramParams(key)
-
+# get sgram params
 with h5py.File(dataH5_path,'r+') as fileLoad:
-
     # ## sampling rate, Hz
     fs = fileLoad[f"{station}/processing_info"].get('sampling_rate_Hz')[()]
-
     # ##number of datapoints
     lenData = fileLoad[f"{station}/processing_info"].get('lenData')[()]
 
 ##spectrogram parameters, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
-nperseg = int(winLen_Sec*fs) #datapoints per window segment
-noverlap = nperseg*fracOverlap  #fraction of window overlapped
+nperseg = int(sgram_config["winLen_Sec"]*fs) #datapoints per window segment
+noverlap = nperseg*sgram_config["fracOverlap"]  #fraction of window overlapped
 
 #padding must be longer than n per window segment
 if nfft < nperseg:
     nfft = nperseg*2
     print("nfft too short; changing to ", nfft)
 
-
 mode='magnitude'
 scaling='spectrum'
 
-
-#%% set args for generator
-
+# set args for generator
 args = {'station':station,
         'channel':channel,
         'fs': fs,
@@ -143,10 +100,8 @@ args = {'station':station,
         'fmin': fmin,
         'fmax': fmax}
 
-
-
-#%% put sgrams in h5
-        ### ### ### CREATE GENERATOR ### ### ###
+# put sgrams in h5
+### ### ### CREATE GENERATOR ### ### ###
 gen_sgram = gen_sgram_QC(key,
                         evID_list=evID_list,
                         dataH5_path = dataH5_path,
@@ -156,14 +111,7 @@ gen_sgram = gen_sgram_QC(key,
                         sgramOutfile='.', #path to save .mat files
                         **args
                         ) #path to save sgram figures
-
-
-
-#%%
-
 evID_list_QC_sgram = []
-
-
 
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
@@ -180,14 +128,10 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
     sgram_normConst_group  = fileLoad.create_group(f"sgram_normConst")
 
-
     while n <= len(evID_list): ## not sure a better way to execute this? But it works
-
         try:   #catch generator "stop iteration" error
-
             evID,sgram,fSTFT,tSTFT, normConstant, Nkept,evID_BADones, i = next(gen_sgram) #next() command updates generator
             n = i+1
-
             evID = str(evID)
 
             if not evID in spectrograms_group:
@@ -197,15 +141,11 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
             if not evID in sgram_normConst_group:
                 sgram_normConst_group.create_dataset(name= evID, data=normConstant)
 
-
-
         except StopIteration: #handle generator error
             break
 
     print('N events in evID_list_QC_sgram:', len(evID_list_QC_sgram))
     print('N events in evID_BADones:', len(evID_BADones))
-
-
 
     if 'spec_parameters' in fileLoad.keys():
         del fileLoad["spec_parameters"]
@@ -224,20 +164,17 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     spec_parameters_group.create_dataset(name= 'fSTFT', data=fSTFT)
     spec_parameters_group.create_dataset(name= 'tSTFT', data=tSTFT)
 
-
-
 print(evID_list_QC_sgram[0])
 print(type(evID_list_QC_sgram[0]))
 
-print(wf_cat['event_ID'].iloc[0])
-print(type(wf_cat['event_ID'].iloc[0]))
+print(wf_cat['evID'].iloc[0])
+print(type(wf_cat['evID'].iloc[0]))
 
-#%% merge catalogs
+# merge catalogs
 print(len(wf_cat))
-cat_keep_sgram = wf_cat[wf_cat['event_ID'].isin(evID_list_QC_sgram)]
+cat_keep_sgram = wf_cat[wf_cat['evID'].isin(evID_list_QC_sgram)]
 print(len(cat_keep_sgram))
 #print(cat_keep_sgram)
-
 
 try:
 #   cat_keep_sgram = cat_keep_sgram.drop(['Unnamed: 0'],axis=1)
@@ -267,77 +204,33 @@ so easiest fix may be to try to insert line_terminator='\n'
 in lines ~180 or 188 in 1_ and 2_.py
 ? wherever “to_csv” is
 '''
-#%% save local catalog to original datafile
-
+# save local catalog to original datafile
 with h5py.File(dataH5_path,'a') as h5file:
-
     if f'catalog/cat_by_sta/{station}' in h5file.keys():
         del h5file[f"catalog/cat_by_sta/{station}"]
-
     catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
-
-
-    for col in cat_keep_sgram.columns:
-
-
-
-        if col == 'datetime':
-            catalog_sta_group.create_dataset(name='datetime',data=np.array(cat_keep_sgram['datetime'],dtype='S'))
-
+    dataframe2hdf(cat_keep_sgram, catalog_sta_group)
+"""    for col in ["evID", "timestamp", "filename"]:
+        if col == "evID":
+            catalog_sta_group.create_dataset(name=col,data=cat_keep_sgram[col])
         else:
-            exec(f"catalog_sta_group.create_dataset(name='{col}',data=cat_keep_sgram.{col})")
+            catalog_sta_group.create_dataset(
+                name=col,
+                data=np.array(cat_keep_sgram[col],dtype='S')
+            )"""
 
-
-
-
-#%% save local catalog to new ML datafile
-
+# save local catalog to new ML datafile
 with h5py.File(SpecUFEx_H5_path,'a') as h5file:
-
     if f'catalog/cat_by_sta/{station}' in h5file.keys():
         del h5file[f"catalog/cat_by_sta/{station}"]
 
     catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
 
+    dataframe2hdf(cat_keep_sgram, catalog_sta_group)
 
-    for col in cat_keep_sgram.columns:
-
-
-
+"""    for col in cat_keep_sgram.columns:
         if col == 'datetime':
             catalog_sta_group.create_dataset(name='datetime',data=np.array(cat_keep_sgram['datetime'],dtype='S'))
 
         else:
-            exec(f"catalog_sta_group.create_dataset(name='{col}',data=cat_keep_sgram.{col})")
-
-
-
-
-
-
-
-
-#%%
-
-
-
-
-#%%
-
-
-
-
-
-
-
-
-
-#%%
-
-
-
-
-
-
-
-#%%
+            catalog_sta_group.create_dataset(name=col,data=cat_keep_sgram[col])"""

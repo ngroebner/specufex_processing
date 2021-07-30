@@ -17,6 +17,7 @@ import obspy
 import pandas as pd
 import yaml
 
+from functions import dataframe2hdf
 from functions.generators import gen_wf_from_folder, load_wf
 
 parser = argparse.ArgumentParser()
@@ -80,7 +81,9 @@ evID_keep = [] #list of wfs to keep
 
 with h5py.File(dataH5_path,'a') as h5file:
     global_catalog_group =  h5file.create_group("catalog/global_catalog")
+    dataframe2hdf(cat, global_catalog_group)
 
+    """
     for col in ["evID", "timestamp", "filename"]:
         if col == "evID":
             global_catalog_group.create_dataset(name=col,data=cat[col])
@@ -90,6 +93,7 @@ with h5py.File(dataH5_path,'a') as h5file:
             global_catalog_group.create_dataset(name=col,
                                                 data=np.array(cat[col],
                                                 dtype='S'))
+        """
 
     waveforms_group  = h5file.create_group("waveforms")
     station_group = h5file.create_group(f"waveforms/{station}")
