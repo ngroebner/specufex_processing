@@ -9,13 +9,13 @@ Whenever you make a change to the code that you want to push, run the tests to s
 For now, there is a single dataset used, but we can add more in the future for morre robust testing.
 To run the tests, you must install the `pytest` library
 
-```
+```bash
 >>> pip install pytest
 ```
 
 After installation, to run the tests, simply cd to the "tests" directory and run
 
-```
+```bash
 >>> pytest
 ```
 
@@ -31,4 +31,4 @@ The `wf_cat.csv` file is the catalog that these methods use for identifying the 
 - _filename_
   - The name of the file containing the waveform
 - _timestamp_
-  - Timestamp in aribitrary units. Could be in datetime format, seconds, nanoseconds, etc, but the only requirement is that it designates time as a numer.
+  - Timestamp in aribitrary units. Could be in datetime format, seconds, nanoseconds, etc, but the only requirement is that it designates time as a number.
