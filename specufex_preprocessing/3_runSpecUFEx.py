@@ -109,9 +109,15 @@ print(X[:,:,-1])
 # Running SpecUFEx
 #%% ============================================================
 
+specparams = config["specufexParams"]
+
 print('Running NMF')
 nmf = BayesianNonparametricNMF(X.shape)
-nmf.fit(X, verbose=1)
+for i in range(specparams["nmf_nbatch"]):
+    # pick random sample
+    sample = np.random.choice(X.sahpe[0], specparams["nmf_batchsz"])
+    nmf.fit(X[sample], verbose=1)
+
 Vs = nmf.transform(X)
 # print how long it took
 
