@@ -95,8 +95,7 @@ X = []
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     for evID in fileLoad['spectrograms']:
         specMat = fileLoad['spectrograms'].get(evID)[:]
-        Xis = specMat
-        X.append(Xis)
+        X.append(specMat)
 
     X = np.array(X)
 
