@@ -34,7 +34,11 @@ sgramParams:
 # SpecUFEx parameters
 specufexParams:
       N_patterns_NMF: 75 # initiate NMF with this many N_patterns (max, then shrinks)
+      nmf_batchsz: 10 # batch size for nmf fit
+      nmf_nbatch: 10 # number of batches
       N_states_HMM: 15 # number of states for HMM (fixed at this value)
+      hmm_batchsz: 10 #batch size for hmm fit
+      hmm_nbatch: 10 # number of batches
 
 # Clustering parameters
 clusteringParams: # toggles are 0=off, 1=on
