@@ -6,74 +6,56 @@ Created on Wed May 19 12:02:51 2021
 @author: theresasawi
 """
 
+import argparse
+
 import h5py
-import numpy as np
-import sys
-
-import pandas as pd
 from matplotlib import pyplot as plt
-
-# sys.path.append('functions/')
-# from setParams import setParams
-# from generators import gen_sgram_QC
-
-import tables
-tables.file._open_files.close_all()
-from specufex import BayesianNonparametricNMF, BayesianHMM
-
-
-#%% load project variables: names and paths
+import numpy as np
+import pandas as pd
 import yaml
 
-path2config = sys.argv[1] #'../config_test.yml' #
+from specufex import BayesianNonparametricNMF, BayesianHMM
 
-with open(path2config, 'r') as stream:
+# command line argument instead of hard coding to config file
+parser = argparse.ArgumentParser()
+parser.add_argument("config_filename", help="Path to configuration file.")
+args = parser.parse_args()
+
+with open(args.config_filename, 'r') as stream:
     try:
-        # print(yaml.safe_load(stream))
-
         config = yaml.safe_load(stream)
-
     except yaml.YAMLError as exc:
         print(exc)
 
 variable_list = []
 value_list = []
 
+# pull out config values for conciseness
+path_config = config["paths"]
+key = path_config["key"]
 
-for headers in config.values():
+data_config = config['dataParams']
+station = data_config["station"]
+channel = data_config["channel"]
+channel_ID = data_config["channel_ID"]
+sampling_rate = data_config["sampling_rate"]
 
-    for value_dict in headers:
-        print(value_dict)
+sgram_config = config["sgramParams"]
+nfft = sgram_config["nfft"]
+fmin, fmax = sgram_config["fmin"], sgram_config["fmax"]
 
-        for k, v in value_dict.items():
-            print(v,k)
+# build path strings
+dataH5_name = f'data_{key}.h5'
+projectPath = path_config["projectPath"]
+pathWF = path_config["pathWF"]
 
-            variable_list.append(k)
-            value_list.append(v)
-
-## assign values to variables
-for index, value in enumerate(value_list):
-    exec(f"{variable_list[index]} = value")
-# key = sys.argv[1]
-# #
-#
-# #%%
-# ### do not change these ###
-#
-# pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
-#
-
-
-dataH5_name =  'data_' + h5name #f'data_{key}.hdf5'
+dataH5_name =  'data_' + path_config["h5name"] #f'data_{key}.hdf5'
 dataH5_path = projectPath + 'H5files/' + dataH5_name
-SpecUFEx_H5_name = 'SpecUFEx_' + h5name #f'SpecUFEx_{key}.hdf5'
+SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"] #f'SpecUFEx_{key}.hdf5'
 SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
-
-sgramMatOut = projectPath + 'matSgrams/'## for testing
 pathWf_cat  = projectPath + 'wf_cat_out.csv'
-
-# Why is this here-- it is not being used.
 pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
+sgramMatOut = projectPath + 'matSgrams/'## for testing
 
 sgram_cat = pd.read_csv(pathSgram_cat)
 
