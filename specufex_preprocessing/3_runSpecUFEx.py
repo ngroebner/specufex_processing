@@ -25,7 +25,7 @@ with open(args.config_filename, 'r') as stream:
     try:
         config = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
-        print(exc)
+        print("F you!", exc)
 
 variable_list = []
 value_list = []
@@ -115,7 +115,7 @@ print('Running NMF')
 nmf = BayesianNonparametricNMF(X.shape)
 for i in range(specparams["nmf_nbatch"]):
     # pick random sample
-    sample = np.random.choice(X.sahpe[0], specparams["nmf_batchsz"])
+    sample = np.random.choice(X.shape[0], specparams["nmf_batchsz"])
     nmf.fit(X[sample], verbose=1)
 
 Vs = nmf.transform(X)

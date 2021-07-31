@@ -51,4 +51,17 @@ def test_convertToSpectrograms():
     hash = gethash("test1/results/sgram_cat_out_test1.csv")
 
     assert hash == truehash
+    assert ret.returncode == 0
+
+def test_runSpecufex():
+    """Test 3_runSpeccUFEx.py
+    Only tests successful execution, not output.
+    """
+    ret = subprocess.run([
+        "python",
+        "../3_runSpecUFEx.py",
+        "config_test1.yml"
+    ])
+
+    assert ret.returncode == 0
 

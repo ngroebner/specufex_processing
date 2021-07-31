@@ -1,7 +1,4 @@
----  # three dashes starts the yaml file
-# Template for the config file
-#
-
+---
 # Paths
 paths:
       key: "test1" # for filenames mainly now..
