@@ -12,36 +12,50 @@ import h5py
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-
-from functions.setParams import setParams
-# from generators import gen_sgram_QC
+import yaml
 
 from specufex import BayesianNonparametricNMF, BayesianHMM
 
-
-#%% load project variables: names and paths
-
+# command line argument instead of hard coding to config file
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
 args = parser.parse_args()
 
-#%%
-### do not change these ###
+with open(args.config_filename, 'r') as stream:
+    try:
+        config = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("F you!", exc)
 
-# TODO: convert to config file method
-pathProj, pathCat, pathWF, network, station, channel, channel_ID, filetype, cat_columns = setParams(key)
+variable_list = []
+value_list = []
 
+# pull out config values for conciseness
+path_config = config["paths"]
+key = path_config["key"]
 
+data_config = config['dataParams']
+station = data_config["station"]
+channel = data_config["channel"]
+channel_ID = data_config["channel_ID"]
+sampling_rate = data_config["sampling_rate"]
 
-dataH5_name = f'data_{key}.hdf5'
-dataH5_path = pathProj + '/H5files/' + dataH5_name
-SpecUFEx_H5_name = f'SpecUFEx_{key}.hdf5'
-SpecUFEx_H5_path = pathProj + '/H5files/' + SpecUFEx_H5_name
-sgramMatOut = pathProj + 'matSgrams/'## for testing
-pathWf_cat  = pathProj + 'wf_cat_out.csv'
+sgram_config = config["sgramParams"]
+nfft = sgram_config["nfft"]
+fmin, fmax = sgram_config["fmin"], sgram_config["fmax"]
 
-# Why is this here-- it is not being used.
-pathSgram_cat = pathProj + f'sgram_cat_out_{key}.csv'
+# build path strings
+dataH5_name = f'data_{key}.h5'
+projectPath = path_config["projectPath"]
+pathWF = path_config["pathWF"]
+
+dataH5_name =  'data_' + path_config["h5name"] #f'data_{key}.hdf5'
+dataH5_path = projectPath + 'H5files/' + dataH5_name
+SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"] #f'SpecUFEx_{key}.hdf5'
+SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
+pathWf_cat  = projectPath + 'wf_cat_out.csv'
+pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
+sgramMatOut = projectPath + 'matSgrams/'## for testing
 
 sgram_cat = pd.read_csv(pathSgram_cat)
 
@@ -81,8 +95,7 @@ X = []
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     for evID in fileLoad['spectrograms']:
         specMat = fileLoad['spectrograms'].get(evID)[:]
-        Xis = specMat
-        X.append(Xis)
+        X.append(specMat)
 
     X = np.array(X)
 
@@ -96,16 +109,27 @@ print(X[:,:,-1])
 # Running SpecUFEx
 #%% ============================================================
 
+specparams = config["specufexParams"]
+
 print('Running NMF')
 nmf = BayesianNonparametricNMF(X.shape)
-nmf.fit(X, verbose=1)
+for i in range(specparams["nmf_nbatch"]):
+    # pick random sample
+    print(f"Batch {i}")
+    sample = np.random.choice(X.shape[0], specparams["nmf_batchsz"])
+    nmf.fit(X[sample], verbose=1)
+
 Vs = nmf.transform(X)
 # print how long it took
 
 #%%
 print('Running HMM')
 hmm = BayesianHMM(nmf.num_pat, nmf.gain)
-hmm.fit(Vs)
+for i in range(specparams["hmm_nbatch"]):
+    print(f"Batch {i}")
+    sample = np.random.choice(Vs.shape[0], specparams["nmf_batchsz"])
+    hmm.fit(Vs)
+
 fingerprints, As, gams = hmm.transform(Vs)
 
 print(fingerprints[0])
@@ -123,7 +147,8 @@ print(fingerprints[0])
 print('writing all output to h5')
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
-##fingerprints are top folder
+
+    ##fingerprints are top folder
     if 'fingerprints' in fileLoad.keys():
         del fileLoad["fingerprints"]
     fp_group = fileLoad.create_group('fingerprints')
