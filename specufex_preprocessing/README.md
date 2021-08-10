@@ -10,6 +10,12 @@ There are three steps in the preprocessing workflow for Specufex:
 
 3. Specufex is run on the resulting spectrograms, and fingerprints, etc, are written to a standardized hdf5file.
 
+To get started, create a catalog for the events of interest in the standard catalog structure below. The catalog is very simple, and contains the minimum information needed to run specufex. As this is a minimum specification, your catalog can contain additional data columns, but must contains at least these.
+
+Next, fill in the config file with the parameters needed for the run. An example config file is [here](example_cconfig.yml).
+
+
+
 ## Standard catalog structure
 
 The `wf_cat.csv` file is the catalog that these methods use for identifying the specific waveforms and their characteristics. The columns are listed below.
