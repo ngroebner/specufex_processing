@@ -12,9 +12,7 @@ There are three steps in the preprocessing workflow for Specufex:
 
 To get started, create a catalog for the events of interest in the standard catalog structure below. The catalog is very simple, and contains the minimum information needed to run specufex. As this is a minimum specification, your catalog can contain additional data columns, but must contains at least these.
 
-Next, fill in the config file with the parameters needed for the run. An example config file is [here](example_cconfig.yml).
-
-
+Next, fill in the config file with the parameters needed for the run. An example config file is [here](example_config.yml).
 
 ## Standard catalog structure
 
