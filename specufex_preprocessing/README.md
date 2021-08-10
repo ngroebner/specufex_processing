@@ -1,28 +1,16 @@
 # Specufex processing utilities
 
-This document should eventually have an introduction and short tutorial on how to use the processing scripts. For now, it will serve as a place for developer notes and to document specifications such as for the wf_cat_out file.
+## Quickstart
 
-## Testing
+There are three steps in the preprocessing workflow for Specufex:
 
-There is now a standard testing framework started.
-Whenever you make a change to the code that you want to push, run the tests to see if any errors are generated.
-For now, there is a single dataset used, but we can add more in the future for morre robust testing.
-To run the tests, you must install the `pytest` library
+1. Given a catalog of of events, a directory of waveform files corresponding to those events, and a configuration file, the waveforms are saved in a standarrd formnat to an hdf5 file ([1_makeWavefromsDataset.py](1_makeWaveformsDataset.py)).
 
-```bash
->>> pip install pytest
-```
+2. The waveforms are then converted into spectrograms, and the spectrograms are saved to hdf5 ([2_convertToSpectrograms.py](2_convertToSpectrograms.py)).
 
-After installation, to run the tests, simply cd to the "tests" directory and run
+3. Specufex is run on the resulting spectrograms, and fingerprints, etc, are written to a standardized hdf5file.
 
-```bash
->>> pytest
-```
-
-If everything works, it will tell you that everything passed.
-Currently, only the first 2 scripts (1_makeWaveformsDataset and 2_convertToSpectrograms) have tests.
-
-## wf_cat.csv structure
+## Standard catalog structure
 
 The `wf_cat.csv` file is the catalog that these methods use for identifying the specific waveforms and their characteristics. The columns are listed below.
 
@@ -32,3 +20,7 @@ The `wf_cat.csv` file is the catalog that these methods use for identifying the 
   - The name of the file containing the waveform
 - _timestamp_
   - Timestamp in aribitrary units. Could be in datetime format, seconds, nanoseconds, etc, but the only requirement is that it designates time as a number.
+
+## Development
+
+See [development documentation](Development.md) for more details.
