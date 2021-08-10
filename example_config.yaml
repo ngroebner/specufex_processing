@@ -1,10 +1,10 @@
 ---
 # Paths
 paths:
-      key: "key" # for filenames mainly now..
-      projectPath: "path/path/" # path to the main project directory
-      pathCat: "path/cat.csv" # path to where the catalog resides, including the file name
-      pathWF: "path/data/" # path to where the waveform files are
+      key: "key" # for filenames mainly now.
+      projectPath: "project/path/" # path to the main project directory
+      pathCat: "cat/path/wf_cat.csv" # path to where the catalog resides, including the file name
+      pathWF: "WF/path/" # path to directory where the waveform files are
       h5name: 'filename.h5' # if we want it to be different from the key !
 
 # Raw data parameters
