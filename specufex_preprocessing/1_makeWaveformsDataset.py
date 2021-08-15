@@ -95,8 +95,8 @@ with h5py.File(dataH5_path,'a') as h5file:
             print(n, '/', len(cat))
         data = load_wf(pathWF+ev["filename"], lenData, channel_ID)
         if data is not None:
-            channel_group.create_dataset(name=str(ev["evID"]), data=data)
-            evID_keep.append(ev["evID"])
+            channel_group.create_dataset(name=str(ev["ev_ID"]), data=data)
+            evID_keep.append(ev["ev_ID"])
         else:
             print(ev.evID, " not saved")
 
@@ -112,7 +112,7 @@ print(dupl_evID, ' duplicate events found and avoided')
 print(n + 1 - dupl_evID, ' waveforms loaded')
 
 # save final working catalog to csv
-cat_keep_wf = cat[cat['evID'].isin(evID_keep)]
+cat_keep_wf = cat[cat['ev_ID'].isin(evID_keep)]
 
 if os.path.exists(wf_cat_out_path):
     os.remove(wf_cat_out_path)
