@@ -64,7 +64,7 @@ pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
 
 # get wf catalog
 wf_cat = pd.read_csv(pathWf_cat)
-evID_list = list(wf_cat.evID)
+evID_list = list(wf_cat.ev_ID)
 
 print('length of event file list: ',len(evID_list))
 
@@ -167,12 +167,12 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 print(evID_list_QC_sgram[0])
 print(type(evID_list_QC_sgram[0]))
 
-print(wf_cat['evID'].iloc[0])
-print(type(wf_cat['evID'].iloc[0]))
+print(wf_cat['ev_ID'].iloc[0])
+print(type(wf_cat['ev_ID'].iloc[0]))
 
 # merge catalogs
 print(len(wf_cat))
-cat_keep_sgram = wf_cat[wf_cat['evID'].isin(evID_list_QC_sgram)]
+cat_keep_sgram = wf_cat[wf_cat['ev_ID'].isin(evID_list_QC_sgram)]
 print(len(cat_keep_sgram))
 #print(cat_keep_sgram)
 

@@ -98,7 +98,7 @@ with h5py.File(dataH5_path,'a') as h5file:
             channel_group.create_dataset(name=str(ev["ev_ID"]), data=data)
             evID_keep.append(ev["ev_ID"])
         else:
-            print(ev.evID, " not saved")
+            print(ev.ev_ID, " not saved")
 
     processing_group = h5file.create_group(f"{station}/processing_info")
     processing_group.create_dataset(name= "sampling_rate_Hz", data=sampling_rate)#,dtype='S')
@@ -107,6 +107,7 @@ with h5py.File(dataH5_path,'a') as h5file:
     # processing_group.create_dataset(name= "orig_formata", data=_format)#,dtype='S')
     # processing_group.create_dataset(name= "instr_response", data=instr_response,dtype='S')
     processing_group.create_dataset(name= "lenData", data=lenData)#,dtype='S')
+    print("processing_group")
 
 print(dupl_evID, ' duplicate events found and avoided')
 print(n + 1 - dupl_evID, ' waveforms loaded')
