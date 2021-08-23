@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     print(f"fmin:{fmin} fmax: {fmax}")
 
-    evIDs, spects = create_spectrograms(
+    evIDs, spects, spectmaker = create_spectrograms(
                         waveform_path,
                         winLen_Sec,
                         fracOverlap,
@@ -60,8 +60,7 @@ if __name__ == "__main__":
 
     print("Size of spectrogram", spects.shape)
 
-    save_spectrograms(spects, evIDs, spectrogram_H5_path)
-
+    spectmaker.save2hdf5(spects, evIDs, spectrogram_H5_path)
 
     #print(evID_list_QC_sgram[0])
     #print(type(evID_list_QC_sgram[0]))

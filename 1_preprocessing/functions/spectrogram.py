@@ -48,8 +48,42 @@ class SpectrogramMaker:
         STFT_norm = STFT_dB / normConstant  ##norm by median
         STFT = np.maximum(0, STFT_norm)
 
-        return STFT, fSTFT, tSTFT
+        self.fSTFT = fSTFT
+        self.tSTFT = tSTFT
 
+        return STFT
+
+    def save2hdf5(self, spects, evIDs, filename):
+        """Save spectrograms and associated event IDs to standard H5 format."""
+
+        with h5py.File(filename,'a') as fileLoad:
+            if 'spectrograms' in fileLoad.keys():
+                del fileLoad["spectrograms"]
+            spectrograms_group     = fileLoad.create_group(f"spectrograms")
+
+            for i, spect in enumerate(spects):
+                #print(evIDs[i])
+                spectrograms_group.create_dataset(name=evIDs[i], data=spect)
+
+
+            if 'spec_parameters' in fileLoad.keys():
+                del fileLoad["spec_parameters"]
+
+            spec_parameters_group  = fileLoad.create_group(f"spec_parameters")
+            spec_parameters_group.clear()
+            spec_parameters_group.create_dataset(name= 'fs', data=self.fs)
+            spec_parameters_group.create_dataset(name= 'lenData', data=self.lenData)
+            spec_parameters_group.create_dataset(name= 'nperseg', data=self.nperseg)
+            spec_parameters_group.create_dataset(name= 'noverlap', data=self.noverlap)
+            spec_parameters_group.create_dataset(name= 'nfft', data=self.nfft)
+            spec_parameters_group.create_dataset(name= 'mode', data=self.mode)
+            spec_parameters_group.create_dataset(name= 'scaling', data=self.scaling)
+            spec_parameters_group.create_dataset(name= 'fmin', data=self.fmin)
+            spec_parameters_group.create_dataset(name= 'fmax', data=self.fmax)
+            spec_parameters_group.create_dataset(name= 'fSTFT', data=self.fSTFT)
+            spec_parameters_group.create_dataset(name= 'tSTFT', data=self.tSTFT)
+
+            print(f"{len(spectrograms_group)} spectrograms saved.")
 
 def create_spectrograms(
     waveform_path,
@@ -59,7 +93,7 @@ def create_spectrograms(
     fmin,
     fmax,
     ):
-    """Create spectorgrams frrom h5 file
+    """Create spectrograms frrom h5 file
     """
 
     with h5py.File(waveform_path,'r+') as fileLoad:
@@ -106,7 +140,7 @@ def create_spectrograms(
             spects.append(STFT)
         print('N events in badevIDs: ', len(badevIDs))
 
-        return evIDs, spects
+        return evIDs, spects, spectmaker
 
 def pad_spects(spects):
     # pad short spectrograms with zeros
@@ -121,36 +155,3 @@ def pad_spects(spects):
         else:
             padded_spects.append(spect)
     return padded_spects
-
-
-def save_spectrograms(spects, evIDs, filename):
-    """Save spectrograms and associated event IDs to standard H5 format."""
-
-    with h5py.File(filename,'a') as fileLoad:
-        if 'spectrograms' in fileLoad.keys():
-            del fileLoad["spectrograms"]
-        spectrograms_group     = fileLoad.create_group(f"spectrograms")
-
-        for i, spect in enumerate(spects):
-            #print(evIDs[i])
-            spectrograms_group.create_dataset(name=evIDs[i], data=spect)
-
-
-        if 'spec_parameters' in fileLoad.keys():
-            del fileLoad["spec_parameters"]
-
-        spec_parameters_group  = fileLoad.create_group(f"spec_parameters")
-        spec_parameters_group.clear()
-        spec_parameters_group.create_dataset(name= 'fs', data=fs)
-        spec_parameters_group.create_dataset(name= 'lenData', data=lenData)
-        spec_parameters_group.create_dataset(name= 'nperseg', data=nperseg)
-        spec_parameters_group.create_dataset(name= 'noverlap', data=noverlap)
-        spec_parameters_group.create_dataset(name= 'nfft', data=nfft)
-        spec_parameters_group.create_dataset(name= 'mode', data=mode)
-        spec_parameters_group.create_dataset(name= 'scaling', data=scaling)
-        spec_parameters_group.create_dataset(name= 'fmin', data=fmin)
-        spec_parameters_group.create_dataset(name= 'fmax', data=fmax)
-        spec_parameters_group.create_dataset(name= 'fSTFT', data=fSTFT)
-        spec_parameters_group.create_dataset(name= 'tSTFT', data=tSTFT)
-
-        print(f"{len(spectrograms_group)} spectrograms saved.")
