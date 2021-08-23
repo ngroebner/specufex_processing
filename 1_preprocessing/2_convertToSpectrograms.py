@@ -6,7 +6,7 @@ import pandas as pd
 import yaml
 
 from functions import dataframe2hdf
-from functions.spectrogram import create_spectrograms, pad_spects, save_spectrograms
+from functions.spectrogram import create_spectrograms, pad_spects
 
 
 if __name__ == "__main__":
