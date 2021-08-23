@@ -1,29 +1,12 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue May 18 17:00:19 2021
-
-
-example: Parkfield repeaters::
-
-
-
-
-@author: theresasawi
-"""
-
 import argparse
 import os
-import sys
 
 import h5py
-import numpy as np
 import pandas as pd
 import yaml
 
 from functions import dataframe2hdf
 from functions.spectrogram import create_spectrograms, pad_spects, save_spectrograms
-
 
 
 if __name__ == "__main__":
@@ -80,39 +63,40 @@ if __name__ == "__main__":
     save_spectrograms(spects, evIDs, spectrogram_H5_path)
 
 
-#print(evID_list_QC_sgram[0])
-#print(type(evID_list_QC_sgram[0]))
+    #print(evID_list_QC_sgram[0])
+    #print(type(evID_list_QC_sgram[0]))
 
-print(wf_cat['ev_ID'].iloc[0])
-print(type(wf_cat['ev_ID'].iloc[0]))
+    print(wf_cat['ev_ID'].iloc[0])
+    print(type(wf_cat['ev_ID'].iloc[0]))
 
-# merge catalogs
-print(len(wf_cat))
-cat_keep_sgram = wf_cat[wf_cat['ev_ID'].isin(evIDs)]
-print(len(cat_keep_sgram))
-#print(cat_keep_sgram)
+    # merge catalogs
+    print(len(wf_cat))
+    cat_keep_sgram = wf_cat[wf_cat['ev_ID'].isin(evIDs)]
+    print(len(cat_keep_sgram))
+    #print(cat_keep_sgram)
 
-try:
-#   cat_keep_sgram = cat_keep_sgram.drop(['Unnamed: 0'],axis=1)
-    cat_keep_sgram = cat_keep_sgram.drop(['Unnamed: 0'],axis=1)
-except:
-   pass
+    try:
+        cat_keep_sgram = cat_keep_sgram.drop(['Unnamed: 0'],axis=1)
+    except:
+        pass
 
-if os.path.exists(pathSgram_cat):
-    os.remove(pathSgram_cat)
+    if os.path.exists(pathSgram_cat):
+        os.remove(pathSgram_cat)
 
-cat_keep_sgram.to_csv(pathSgram_cat)
+    cat_keep_sgram.to_csv(pathSgram_cat)
 
-# save local catalog to original datafile
-with h5py.File(dataH5_path,'a') as h5file:
-    if f'catalog/cat_by_sta/{station}' in h5file.keys():
-        del h5file[f"catalog/cat_by_sta/{station}"]
-    catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
-    dataframe2hdf(cat_keep_sgram, catalog_sta_group)
+    ## I'm not sure what these do
 
-# save local catalog to new ML datafile
-with h5py.File(SpecUFEx_H5_path,'a') as h5file:
-    if f'catalog/cat_by_sta/{station}' in h5file.keys():
-        del h5file[f"catalog/cat_by_sta/{station}"]
-    catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
-    dataframe2hdf(cat_keep_sgram, catalog_sta_group)
+    # save local catalog to original datafile
+    with h5py.File(dataH5_path,'a') as h5file:
+        if f'catalog/cat_by_sta/{station}' in h5file.keys():
+            del h5file[f"catalog/cat_by_sta/{station}"]
+        catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
+        dataframe2hdf(cat_keep_sgram, catalog_sta_group)
+
+    # save local catalog to new ML datafile
+    with h5py.File(SpecUFEx_H5_path,'a') as h5file:
+        if f'catalog/cat_by_sta/{station}' in h5file.keys():
+            del h5file[f"catalog/cat_by_sta/{station}"]
+        catalog_sta_group = h5file.create_group(f"catalog/cat_by_sta/{station}")
+        dataframe2hdf(cat_keep_sgram, catalog_sta_group)
