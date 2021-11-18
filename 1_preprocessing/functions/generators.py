@@ -16,8 +16,6 @@ import os
 
 sys.path.append('functions/')
 
-import tables
-tables.file._open_files.close_all()
 import scipy.io as spio
 import scipy.signal
 
