@@ -20,9 +20,9 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     scripts = [
-        "specufex_preprocessing/1_makeWaveformsDataset.py",
-        "specufex_preprocessing/2_convertToSpectrograms.py",
-        "specufex_preprocessing/2a_plotSpectrum.py",
-        "specufex_preprocessing/3_runSpecUFEx.py"
+        "1_preprocessing/1_makeWaveformsDataset.py",
+        "1_preprocessing/2_convertToSpectrograms.py",
+        "1_preprocessing/2a_plotSpectrum.py",
+        "1_preprocessing/3_runSpecUFEx.py"
     ],
 )
