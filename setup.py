@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="speufex_preprocessing",
+    name="specufex_preprocessing",
     version="0.1.0",
     author="Specufex team",
     author_email="groe0029@umn.edu",
-    description="Preand post processing tools for specufex ",
+    description="Pre and post processing tools for specufex ",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/benholtzman/specufex_preprocessing/",
@@ -20,9 +20,9 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     scripts = [
-        "specufex_preprocessing/1_makeWaveformsDataset.py",
-        "specufex_preprocessing/2_convertToSpectrograms.py",
-        "specufex_preprocessing/2a_plotSpectrum.py",
-        "specufex_preprocessing/3_runSpecUFEx.py"
+        "1_preprocessing/1_makeWaveformsDataset.py",
+        "1_preprocessing/2_convertToSpectrograms.py",
+        "1_preprocessing/2a_plotSpectrum.py",
+        "1_preprocessing/3_runSpecUFEx.py"
     ],
 )

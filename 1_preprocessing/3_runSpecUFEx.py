@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!python3
 # -*- coding: utf-8 -*-
 """
 Created on Wed May 19 12:02:51 2021
@@ -100,8 +100,8 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     X = np.array(X)
 
 # ================
-print(np.shape(X))
-print(X[:,:,-1])
+# print(np.shape(X))
+# print(X[:,:,-1])
 
 
 
@@ -132,7 +132,7 @@ for i in range(specparams["hmm_nbatch"]):
 
 fingerprints, As, gams = hmm.transform(Vs)
 
-print(fingerprints[0])
+#print(fingerprints[0])
 
 # show a fingerprint if you want to .. but not useful for running remotely..
 #plt.imshow(fingerprints[0])

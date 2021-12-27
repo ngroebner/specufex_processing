@@ -10,8 +10,8 @@ paths:
 # Raw data parameters
 dataParams:
       network: 'N' # SEED format for network, station, channel
-      station: 'N'
-      channel: 'N'
+      station: 'S'
+      channel: 'C'
       channel_ID: 0 # the index number for an obspy stream object
       sampling_rate: 100 #Hz
       filetype: '.mseed' #.SAC .txt

@@ -1,3 +1,5 @@
+#!python3
+
 import argparse
 import os
 
@@ -19,33 +21,44 @@ if __name__ == "__main__":
     parser.add_argument("config_filename", help="Path to configuration file.")
     args = parser.parse_args()
 
-    with open("params.yaml", "r") as yamlfile:
-        config = yaml.load(yamlfile, Loader=yaml.FullLoader)['spectrograms']
+    with open(args.config_filename, "r") as yamlfile:
+        config = yaml.load(yamlfile, Loader=yaml.FullLoader)
 
-    pathCatWF = config['pathCat']
-    waveform_path = config['waveform_path']
+    pathCatWF = config['paths']['pathCat']
+    waveform_path = config['paths']['pathWF']
+    projectPath = config['paths']["projectPath"]
     spectrogram_H5_name = 'spectrograms.h5'
-    spectrogram_H5_path = os.path.join(config['pathProj'],"data","spectrograms",spectrogram_H5_name)
+    spectrogram_H5_path = os.path.join(projectPath,"data","spectrograms",spectrogram_H5_name)
+    key = config["paths"]["key"]
+    dataH5_name = f'data_{key}.h5'
+    dataH5_path = projectPath + '/H5files/' + dataH5_name
+    SpecUFEx_H5_name = 'SpecUFEx_' + config['paths']["h5name"]
+    SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
 
-    os.makedirs(os.path.join(config['pathProj'],"data","spectrograms"),exist_ok=True)
+    station  = config["dataParams"]["station"]
+    channel = config["dataParams"]["channel"]
 
-    pathWf_cat  = pathCatWF + 'wf_cat_out.csv'
-    pathSgram_cat = config['pathProj'] + f'sgram_cat_out_{config["name"]}.csv'
+    os.makedirs(os.path.join(config['paths']['projectPath'],"data","spectrograms"),exist_ok=True)
+
+    pathWf_cat  = projectPath + 'wf_cat_out.csv'
+    pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
     # get wf catalog
     wf_cat = pd.read_csv(pathWf_cat)
-    evID_list = list(wf_cat.evID)
+    evID_list = list(wf_cat.ev_ID)
 
     # get sgram params
-    fmin = config['fmin']
-    fmax = config['fmax']
-    winLen_Sec = config['winLen_Sec']
-    fracOverlap = config['fracOverlap']
-    nfft = config['nfft']
+    fmin = config['sgramParams']['fmin']
+    fmax = config['sgramParams']['fmax']
+    winLen_Sec = config['sgramParams']['winLen_Sec']
+    fracOverlap = config['sgramParams']['fracOverlap']
+    nfft = config['sgramParams']['nfft']
 
     print(f"fmin:{fmin} fmax: {fmax}")
 
     evIDs, spects, spectmaker = create_spectrograms(
-                        waveform_path,
+                        dataH5_path,
+                        station,
+                        channel,
                         winLen_Sec,
                         fracOverlap,
                         nfft,
@@ -58,7 +71,7 @@ if __name__ == "__main__":
 
     print("Spectrograms created.")
 
-    print("Size of spectrogram", spects.shape)
+    print("Size of spectrogram", spects[0].shape)
 
     spectmaker.save2hdf5(spects, evIDs, spectrogram_H5_path)
 
