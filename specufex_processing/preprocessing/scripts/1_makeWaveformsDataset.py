@@ -17,8 +17,7 @@ import obspy
 import pandas as pd
 import yaml
 
-from .functions import dataframe2hdf
-from .functions.generators import gen_wf_from_folder, load_wf
+from preprocessing import dataframe2hdf, load_wf
 
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
@@ -65,12 +64,6 @@ if data_config["filetype"] == '.txt':
 else:
     wf_test = obspy.read(wf_filelist[0])
     lenData = len(wf_test[0].data)
-
-# define generator (function)
-gen_wf = gen_wf_from_folder(wf_filelist,
-                            lenData,
-                            data_config["channel_ID"])
-
 
 # clear old H5 if it exists, or else error will appear
 if os.path.exists(dataH5_path):
