@@ -17,7 +17,7 @@ import obspy
 import pandas as pd
 import yaml
 
-from preprocessing import dataframe2hdf, load_wf
+from specufex_processing.preprocessing import dataframe2hdf, load_wf
 
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")

@@ -7,8 +7,8 @@ import h5py
 import pandas as pd
 import yaml
 
-from functions import dataframe2hdf
-from functions.spectrogram import create_spectrograms, pad_spects
+from specufex_processing.preprocessing import dataframe2hdf
+from specufex_processing.preprocessing.spectrograms import create_spectrograms, pad_spects
 
 
 if __name__ == "__main__":
