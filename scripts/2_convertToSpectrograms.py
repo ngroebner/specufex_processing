@@ -8,7 +8,7 @@ import pandas as pd
 import yaml
 
 from specufex_processing.preprocessing import dataframe2hdf
-from specufex_processing.preprocessing.spectrograms import create_spectrograms, pad_spects
+from specufex_processing.preprocessing.spectrogram import create_spectrograms, pad_spects
 
 
 if __name__ == "__main__":
@@ -53,8 +53,6 @@ if __name__ == "__main__":
     fracOverlap = config['sgramParams']['fracOverlap']
     nfft = config['sgramParams']['nfft']
 
-    print(f"fmin:{fmin} fmax: {fmax}")
-
     evIDs, spects, spectmaker = create_spectrograms(
                         dataH5_path,
                         station,
@@ -75,17 +73,9 @@ if __name__ == "__main__":
 
     spectmaker.save2hdf5(spects, evIDs, spectrogram_H5_path)
 
-    #print(evID_list_QC_sgram[0])
-    #print(type(evID_list_QC_sgram[0]))
-
-    print(wf_cat['ev_ID'].iloc[0])
-    print(type(wf_cat['ev_ID'].iloc[0]))
 
     # merge catalogs
-    print(len(wf_cat))
     cat_keep_sgram = wf_cat[wf_cat['ev_ID'].isin(evIDs)]
-    print(len(cat_keep_sgram))
-    #print(cat_keep_sgram)
 
     try:
         cat_keep_sgram = cat_keep_sgram.drop(['Unnamed: 0'],axis=1)
