@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue May 18 17:00:19 2021
@@ -8,7 +8,7 @@ example: Parkfield repeaters::
 
 
 import argparse
-import glob
+#import glob
 import os
 
 import h5py
@@ -17,8 +17,7 @@ import obspy
 import pandas as pd
 import yaml
 
-from functions import dataframe2hdf
-from functions.generators import gen_wf_from_folder, load_wf
+from specufex_processing.preprocessing import dataframe2hdf, load_wf
 
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
@@ -48,7 +47,7 @@ dataH5_path = projectPath + '/H5files/' + dataH5_name
 wf_cat_out_path = projectPath + 'wf_cat_out.csv'
 
 if not os.path.isdir(projectPath + '/H5files/'):
-    os.mkdir(projectPath + '/H5files/')
+    os.mkdir(projectPath + 'H5files/')
 
 # get global catalog
 cat = pd.read_csv(path_config["pathCat"])
@@ -65,12 +64,6 @@ if data_config["filetype"] == '.txt':
 else:
     wf_test = obspy.read(wf_filelist[0])
     lenData = len(wf_test[0].data)
-
-# define generator (function)
-gen_wf = gen_wf_from_folder(wf_filelist,
-                            lenData,
-                            data_config["channel_ID"])
-
 
 # clear old H5 if it exists, or else error will appear
 if os.path.exists(dataH5_path):

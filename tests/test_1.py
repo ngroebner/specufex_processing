@@ -19,7 +19,7 @@ def test_makeWaveforms():
     # run the script
     subprocess.run([
         "python",
-        "../1_makeWaveformsDataset.py",
+        "../scripts/1_makeWaveformsDataset.py",
         "config_test1.yml"
     ])
 
@@ -43,7 +43,7 @@ def test_convertToSpectrograms():
     # run the script
     ret = subprocess.run([
         "python",
-        "../2_convertToSpectrograms.py",
+        "../scrfipts/2_convertToSpectrograms.py",
         "config_test1.yml"
     ])
 
@@ -59,7 +59,7 @@ def test_runSpecufex():
     """
     ret = subprocess.run([
         "python",
-        "../3_runSpecUFEx.py",
+        "../scripts/3_runSpecUFEx.py",
         "config_test1.yml"
     ])
 

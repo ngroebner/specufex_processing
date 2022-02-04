@@ -1,9 +1,6 @@
 import h5py
 import numpy as np
-import sys
-import os
 import pandas as pd
-import yaml
 from scipy.signal import spectrogram
 
 # f
@@ -72,7 +69,7 @@ class SpectrogramMaker:
             spec_parameters_group  = fileLoad.create_group(f"spec_parameters")
             spec_parameters_group.clear()
             spec_parameters_group.create_dataset(name= 'fs', data=self.fs)
-            spec_parameters_group.create_dataset(name= 'lenData', data=self.lenData)
+            #spec_parameters_group.create_dataset(name= 'lenData', data=self.lenData)
             spec_parameters_group.create_dataset(name= 'nperseg', data=self.nperseg)
             spec_parameters_group.create_dataset(name= 'noverlap', data=self.noverlap)
             spec_parameters_group.create_dataset(name= 'nfft', data=self.nfft)
@@ -86,22 +83,25 @@ class SpectrogramMaker:
             print(f"{len(spectrograms_group)} spectrograms saved.")
 
 def create_spectrograms(
-    waveform_path,
+    waveform_h5_path,
+    station,
+    channel,
     winLen_Sec,
     fracOverlap,
     nfft,
     fmin,
     fmax,
     ):
-    """Create spectrograms frrom h5 file
+    """Create spectrograms from h5 file
     """
 
-    with h5py.File(waveform_path,'r+') as fileLoad:
+    with h5py.File(waveform_h5_path,'r+') as fileLoad:
         # sampling rate, Hz - only oicks first one, a bad thing
         # TODO: guarantee upstream that all waveforms have same sampling rate
-        fs = fileLoad["processing_info"].get('sampling_rate_Hz')[0]
+        print(fileLoad.keys())
+        fs = fileLoad[f"{station}/processing_info"].get('sampling_rate_Hz')[()]
         # number of datapoints
-        lenData = len(fileLoad["processing_info"].get('sampling_rate_Hz')[()])
+        lenData = fileLoad[f"{station}/processing_info"].get('lenData')[()]
 
         # spectrogram parameters
         # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
@@ -126,9 +126,11 @@ def create_spectrograms(
         badevIDs = []
         evIDs = []
         spects = []
-        for evID in fileLoad['waveforms'].keys():
-            waveform = fileLoad['waveforms'][evID][()]
-            STFT, fSTFT, tSTFT = spectmaker(waveform)
+        for evID in fileLoad[f'waveforms/{station}/{channel}'].keys():
+            #print(fileLoad[f'waveforms/{station}/{channel}'].keys())
+            #print(fileLoad[f'waveforms/{station}/{channel}'].keys())
+            waveform = fileLoad[f'waveforms/{station}/{channel}/{evID}'][:]
+            STFT = spectmaker(waveform)
             if np.any(np.isnan(STFT)) or np.any(STFT)==np.inf or np.any(STFT)==-np.inf:
                 badevIDs.append(evID)
                 # if you get a bad one, fill with zeros
