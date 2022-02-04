@@ -116,7 +116,7 @@ nmf = BayesianNonparametricNMF(X.shape)
 for i in range(specparams["nmf_nbatch"]):
     # pick random sample
     print(f"Batch {i}")
-    sample = np.random.choice(X.shape[0], specparams["nmf_batchsz"])
+    sample = np.random.choice(X.shape[0], specparams["nmf_batchsz"],replace=False)
     nmf.fit(X[sample], verbose=1)
 
 Vs = nmf.transform(X)
@@ -127,7 +127,7 @@ print('Running HMM')
 hmm = BayesianHMM(nmf.num_pat, nmf.gain)
 for i in range(specparams["hmm_nbatch"]):
     print(f"Batch {i}")
-    sample = np.random.choice(Vs.shape[0], specparams["nmf_batchsz"])
+    sample = np.random.choice(Vs.shape[0], specparams["nmf_batchsz"],replace=False)
     hmm.fit(Vs)
 
 fingerprints, As, gams = hmm.transform(Vs)
