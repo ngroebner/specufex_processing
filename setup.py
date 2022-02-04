@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="specufex_preprocessing",
+    name="specufex-processing",
     version="0.1.0",
     author="Specufex team",
     author_email="groe0029@umn.edu",
