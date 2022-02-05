@@ -43,11 +43,11 @@ sampling_rate = data_config["sampling_rate"]
 dataH5_name = f'data_{key}.h5'
 projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
-dataH5_path = projectPath + '/H5files/' + dataH5_name
-wf_cat_out_path = projectPath + 'wf_cat_out.csv'
+dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
+wf_cat_out_path = os.path.join(projectPath, 'wf_cat_out.csv')
 
-if not os.path.isdir(projectPath + '/H5files/'):
-    os.mkdir(projectPath + 'H5files/')
+if not os.path.isdir(os.path.join(projectPath, '/H5files/')):
+    os.mkdir(os.path.join(projectPath, 'H5files/'))
 
 # get global catalog
 cat = pd.read_csv(path_config["pathCat"])

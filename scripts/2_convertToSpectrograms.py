@@ -31,17 +31,17 @@ if __name__ == "__main__":
     spectrogram_H5_path = os.path.join(projectPath,"data","spectrograms",spectrogram_H5_name)
     key = config["paths"]["key"]
     dataH5_name = f'data_{key}.h5'
-    dataH5_path = projectPath + '/H5files/' + dataH5_name
+    dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
     SpecUFEx_H5_name = 'SpecUFEx_' + config['paths']["h5name"]
-    SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
+    SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
 
     station  = config["dataParams"]["station"]
     channel = config["dataParams"]["channel"]
 
     os.makedirs(os.path.join(config['paths']['projectPath'],"data","spectrograms"),exist_ok=True)
 
-    pathWf_cat  = projectPath + 'wf_cat_out.csv'
-    pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
+    pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
+    pathSgram_cat = os.path.join(projectPath,f'sgram_cat_out_{key}.csv')
     # get wf catalog
     wf_cat = pd.read_csv(pathWf_cat)
     evID_list = list(wf_cat.ev_ID)

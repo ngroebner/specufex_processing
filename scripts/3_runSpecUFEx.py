@@ -7,6 +7,7 @@ Created on Wed May 19 12:02:51 2021
 """
 
 import argparse
+import os
 
 import h5py
 from matplotlib import pyplot as plt
@@ -49,13 +50,13 @@ dataH5_name = f'data_{key}.h5'
 projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
 
-dataH5_name =  'data_' + path_config["h5name"] #f'data_{key}.hdf5'
-dataH5_path = projectPath + 'H5files/' + dataH5_name
+dataH5_name =  os.path.join('data_', path_config["h5name"]) #f'data_{key}.hdf5'
+dataH5_path = os.path.join(projectPath, 'H5files/', dataH5_name)
 SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"] #f'SpecUFEx_{key}.hdf5'
-SpecUFEx_H5_path = projectPath + 'H5files/' + SpecUFEx_H5_name
-pathWf_cat  = projectPath + 'wf_cat_out.csv'
-pathSgram_cat = projectPath + f'sgram_cat_out_{key}.csv'
-sgramMatOut = projectPath + 'matSgrams/'## for testing
+SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
+pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
+pathSgram_cat = os.path.join(projectPath, f'sgram_cat_out_{key}.csv')
+sgramMatOut = os.path.jpoin(projectPath, 'matSgrams/')## for testing
 
 sgram_cat = pd.read_csv(pathSgram_cat)
 
@@ -122,6 +123,8 @@ for i in range(specparams["nmf_nbatch"]):
 Vs = nmf.transform(X)
 # print how long it took
 
+# TODO save the nmf model so it isnt redone later if theres a restart
+
 #%%
 print('Running HMM')
 hmm = BayesianHMM(nmf.num_pat, nmf.gain)
@@ -131,6 +134,8 @@ for i in range(specparams["hmm_nbatch"]):
     hmm.fit(Vs)
 
 fingerprints, As, gams = hmm.transform(Vs)
+
+# TODO save hmm model
 
 #print(fingerprints[0])
 
