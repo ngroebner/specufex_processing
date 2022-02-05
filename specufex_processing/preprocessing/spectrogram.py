@@ -43,6 +43,7 @@ class SpectrogramMaker:
         STFT_dB = 20*np.log10(STFT_0, where=STFT_0 != 0)  ##convert to dB
         normConstant = np.median(STFT_0)
         STFT_norm = STFT_dB / normConstant  ##norm by median
+        print("STFT_norm max", STFT_norm.max())
         STFT = np.maximum(0, STFT_norm)
 
         self.fSTFT = fSTFT
@@ -101,7 +102,7 @@ def create_spectrograms(
         print(fileLoad.keys())
         fs = fileLoad[f"{station}/processing_info"].get('sampling_rate_Hz')[()]
         # number of datapoints
-        lenData = fileLoad[f"{station}/processing_info"].get('lenData')[()]
+        #lenData = fileLoad[f"{station}/processing_info"].get('lenData')[()]
 
         # spectrogram parameters
         # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
