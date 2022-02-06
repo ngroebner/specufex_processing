@@ -23,6 +23,7 @@ setuptools.setup(
         "scripts/1_makeWaveformsDataset.py",
         "scripts/2_convertToSpectrograms.py",
         "scripts/2a_plotSpectrum.py",
-        "scripts/3_runSpecUFEx.py"
+        "scripts/3_runSpecUFEx.py",
+        "scripts/calculate_energy.py"
     ],
 )
