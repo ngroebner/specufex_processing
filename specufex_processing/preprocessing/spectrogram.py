@@ -2,6 +2,7 @@ import h5py
 import numpy as np
 import pandas as pd
 from scipy.signal import spectrogram
+from specufex_processing.utils import _overwrite_group_if_exists
 
 # f
 
@@ -24,10 +25,10 @@ class SpectrogramMaker:
         """Converts a waveform into a transformed spectrogram
         Returns
         -------
-        tuple of 3 numpy arrays:
+        tuple of 2 numpy arrays:
             STFT - the transformed spectrogram
-            fSTFT - the frequency axis labels
-            tSTFT - time axis labels
+            STFT_0 - the original, non-transformed spectrogram
+
         """
         fSTFT, tSTFT, STFT_raw = spectrogram(waveform,fs=self.fs,nperseg=self.nperseg,
                                             noverlap=self.noverlap,nfft=self.nfft,
@@ -47,21 +48,23 @@ class SpectrogramMaker:
         self.fSTFT = fSTFT
         self.tSTFT = tSTFT
 
-        return STFT
+        return STFT, STFT_0
 
-    def save2hdf5(self, spects, evIDs, filename):
+    def save2hdf5(self, spects, raw_spects, evIDs, filename):
         """Save spectrograms and associated event IDs to standard H5 format."""
 
         with h5py.File(filename,'a') as fileLoad:
-            print(filename)
-            if 'spectrograms' in fileLoad.keys():
+            """if 'spectrograms' in fileLoad.keys():
                 del fileLoad["spectrograms"]
-            spectrograms_group = fileLoad.create_group(f"spectrograms")
+            spectrograms_group = fileLoad.create_group(f"spectrograms")"""
+            spectrograms_group = _overwrite_group_if_exists(fileLoad, "spectrograms")
+            raw_spectrograms_group = _overwrite_group_if_exists(fileLoad, "raw_spectrograms")
 
             for i, spect in enumerate(spects):
                 #print(evIDs[i])
                 spectrograms_group.create_dataset(name=evIDs[i], data=spect)
-
+            for i, rspect in enumerate(raw_spects):
+                raw_spectrograms_group.create_dataset(name=evIDs[i], data=rspect)
 
             if 'spec_parameters' in fileLoad.keys():
                 del fileLoad["spec_parameters"]
@@ -126,11 +129,12 @@ def create_spectrograms(
         badevIDs = []
         evIDs = []
         spects = []
+        raw_spects = []
         for evID in fileLoad[f'waveforms/{station}/{channel}'].keys():
             #print(fileLoad[f'waveforms/{station}/{channel}'].keys())
             #print(fileLoad[f'waveforms/{station}/{channel}'].keys())
             waveform = fileLoad[f'waveforms/{station}/{channel}/{evID}'][:]
-            STFT = spectmaker(waveform)
+            STFT, STFT_0 = spectmaker(waveform)
             if np.any(np.isnan(STFT)) or np.any(STFT)==np.inf or np.any(STFT)==-np.inf:
                 badevIDs.append(evID)
                 # if you get a bad one, fill with zeros
@@ -140,9 +144,10 @@ def create_spectrograms(
                 print(f"evID {evID} set to zero, bad data")
             evIDs.append(evID)
             spects.append(STFT)
+            raw_spects.append(STFT_0)
         print('N events in badevIDs: ', len(badevIDs))
 
-        return evIDs, spects, spectmaker
+        return evIDs, spects, raw_spects, spectmaker
 
 def pad_spects(spects):
     # pad short spectrograms with zeros

@@ -53,7 +53,7 @@ if __name__ == "__main__":
     fracOverlap = config['sgramParams']['fracOverlap']
     nfft = config['sgramParams']['nfft']
 
-    evIDs, spects, spectmaker = create_spectrograms(
+    evIDs, spects, raw_spects, spectmaker = create_spectrograms(
                         dataH5_path,
                         station,
                         channel,
@@ -66,13 +66,12 @@ if __name__ == "__main__":
     # pad short spectrograms with zeros
 
     spects = pad_spects(spects)
+    raw_spects = pad_spects(raw_spects)
 
     print("Spectrograms created.")
-
     print("Size of spectrogram", spects[0].shape)
 
-    spectmaker.save2hdf5(spects, evIDs, SpecUFEx_H5_path)
-
+    spectmaker.save2hdf5(spects, raw_spects, evIDs, SpecUFEx_H5_path)
 
     # merge catalogs
     cat_keep_sgram = wf_cat[wf_cat['ev_ID'].isin(evIDs)]
