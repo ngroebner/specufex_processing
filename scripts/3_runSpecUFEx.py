@@ -56,7 +56,7 @@ SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"] #f'SpecUFEx_{key}.hdf5'
 SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
 pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
 pathSgram_cat = os.path.join(projectPath, f'sgram_cat_out_{key}.csv')
-sgramMatOut = os.path.jpoin(projectPath, 'matSgrams/')## for testing
+sgramMatOut = os.path.join(projectPath, 'matSgrams/')## for testing
 
 sgram_cat = pd.read_csv(pathSgram_cat)
 
@@ -94,6 +94,7 @@ sgram_cat = pd.read_csv(pathSgram_cat)
 X = []
 
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
+    print(fileLoad.keys())
     for evID in fileLoad['spectrograms']:
         specMat = fileLoad['spectrograms'].get(evID)[:]
         X.append(specMat)
@@ -131,7 +132,7 @@ hmm = BayesianHMM(nmf.num_pat, nmf.gain)
 for i in range(specparams["hmm_nbatch"]):
     print(f"Batch {i}")
     sample = np.random.choice(Vs.shape[0], specparams["nmf_batchsz"],replace=False)
-    hmm.fit(Vs)
+    hmm.fit(Vs[sample], verbose=1)
 
 fingerprints, As, gams = hmm.transform(Vs)
 
@@ -170,12 +171,12 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
     # write the SpecUFEx out: ===========================
     # maybe include these, but they are not yet tested.
-    #ACM_group = fileLoad.create_group("SpecUFEX_output/ACM")
-    #STM_group = fileLoad.create_group("SpecUFEX_output/STM")
+    ACM_group = fileLoad.create_group("SpecUFEX_output/ACM")
+    STM_group = fileLoad.create_group("SpecUFEX_output/STM")
 
-    # for i, evID in enumerate(fileLoad['spectrograms']):
-    #     ACM_group.create_dataset(name=evID,data=As[i]) #ACM
-    #     STM_group.create_dataset(name=evID,data=gam[i]) #STM
+    for i, evID in enumerate(fileLoad['spectrograms']):
+         ACM_group.create_dataset(name=evID,data=As[i]) #ACM
+         STM_group.create_dataset(name=evID,data=gams[i]) #STM
 
     gain_group = fileLoad.create_group("SpecUFEX_output/ACM_gain")
     W_group                      = fileLoad.create_group("SpecUFEX_output/W")
