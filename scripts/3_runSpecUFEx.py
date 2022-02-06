@@ -96,7 +96,7 @@ Vs = nmf.transform(X)
 # save the model using it's own machinery
 print("Saving NMF model and data")
 
-nmf.save(os.path.join(dataH5_path, "nmf.h5"), overwrite=True)
+nmf.save(os.path.join(projectPath, 'H5files/', "nmf.h5"), overwrite=True)
 
 # save model parameters and calculated ACMs to the specufex data
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
@@ -126,6 +126,7 @@ fingerprints, As, gams = hmm.transform(Vs)
 
 
 print('Saving HMM model and data')
+hmm.save(os.path.join(projectPath, 'H5files/', "hmm.h5"), overwrite=True)
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
 
