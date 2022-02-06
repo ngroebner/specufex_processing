@@ -88,6 +88,7 @@ for i in range(specparams["nmf_nbatch"]):
     )
     nmf.fit(X[sample], verbose=1)
 
+print("Calculating ACMs.")
 Vs = nmf.transform(X)
 # print how long it took?
 
@@ -95,7 +96,7 @@ Vs = nmf.transform(X)
 # save the model using it's own machinery
 print("Saving NMF model and data")
 
-nmf.save(os.path.join(dataH5_path, "nmf.h5", overwrite=True))
+nmf.save(os.path.join(dataH5_path, "nmf.h5"), overwrite=True)
 
 # save model parameters and calculated ACMs to the specufex data
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
@@ -118,7 +119,7 @@ for i in range(specparams["hmm_nbatch"]):
     )
     hmm.fit(Vs[sample], verbose=1)
 
-
+print("Calculating fingerprints")
 fingerprints, As, gams = hmm.transform(Vs)
 
 # TODO save hmm model
