@@ -41,7 +41,6 @@ class SpectrogramMaker:
             STFT_0 = STFT_raw
         # convert
         normConstant = np.median(STFT_0)
-
         STFT_dB = 20*np.log10(STFT_0/normConstant, where=STFT_0 != 0)  ##convert to dB
         STFT = np.maximum(0, STFT_dB)
 
