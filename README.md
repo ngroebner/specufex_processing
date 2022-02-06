@@ -12,6 +12,6 @@ pip install git+https://github.com/ngroebner/specufex_processing
 
 The preprocessing scripts will install to your path, so they can be used from anywhere.
 
-See the [preprocessing Readme](specufex_preprocessing/README.md) for more info on the preprocessing steps.
+See the [preprocessing Readme](specufex_processing/preprocessing/README.md) for more info on the preprocessing steps.
 
 See [3_post](3_post/README.md) for info on postprocessing.
