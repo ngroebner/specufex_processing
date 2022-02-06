@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     print("Size of spectrogram", spects[0].shape)
 
-    spectmaker.save2hdf5(spects, evIDs, spectrogram_H5_path)
+    spectmaker.save2hdf5(spects, evIDs, SpecUFEx_H5_path)
 
 
     # merge catalogs

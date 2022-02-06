@@ -40,11 +40,9 @@ class SpectrogramMaker:
         else:
             STFT_0 = STFT_raw
         # convert
-        STFT_dB = 20*np.log10(STFT_0, where=STFT_0 != 0)  ##convert to dB
         normConstant = np.median(STFT_0)
-        STFT_norm = STFT_dB / normConstant  ##norm by median
-        print("STFT_norm max", STFT_norm.max())
-        STFT = np.maximum(0, STFT_norm)
+        STFT_dB = 20*np.log10(STFT_0/normConstant, where=STFT_0 != 0)  ##convert to dB
+        STFT = np.maximum(0, STFT_dB)
 
         self.fSTFT = fSTFT
         self.tSTFT = tSTFT
@@ -55,9 +53,10 @@ class SpectrogramMaker:
         """Save spectrograms and associated event IDs to standard H5 format."""
 
         with h5py.File(filename,'a') as fileLoad:
+            print(filename)
             if 'spectrograms' in fileLoad.keys():
                 del fileLoad["spectrograms"]
-            spectrograms_group     = fileLoad.create_group(f"spectrograms")
+            spectrograms_group = fileLoad.create_group(f"spectrograms")
 
             for i, spect in enumerate(spects):
                 #print(evIDs[i])
