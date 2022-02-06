@@ -1,22 +1,20 @@
 #!python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed May 19 12:02:51 2021
 
-@author: theresasawi
-"""
 
 import argparse
 import os
 
 import h5py
-from matplotlib import pyplot as plt
 import numpy as np
-import pandas as pd
 import time
 import yaml
 
 from specufex import BayesianNonparametricNMF, BayesianHMM
+from specufex_processing.utils import (
+    _overwrite_dataset_if_exists,
+    _overwrite_group_if_exists
+)
 
 t_start = time.time()
 
@@ -29,7 +27,8 @@ with open(args.config_filename, 'r') as stream:
     try:
         config = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
-        print("F you!", exc)
+        print("Could not read config file.", exc)
+        exit()
 
 variable_list = []
 value_list = []
@@ -53,15 +52,11 @@ dataH5_name = f'data_{key}.h5'
 projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
 
-dataH5_name =  os.path.join('data_', path_config["h5name"]) #f'data_{key}.hdf5'
+dataH5_name =  os.path.join('data_', path_config["h5name"])
 dataH5_path = os.path.join(projectPath, 'H5files/', dataH5_name)
-SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"] #f'SpecUFEx_{key}.hdf5'
+SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"]
 SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
 pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
-pathSgram_cat = os.path.join(projectPath, f'sgram_cat_out_{key}.csv')
-sgramMatOut = os.path.join(projectPath, 'matSgrams/')## for testing
-
-sgram_cat = pd.read_csv(pathSgram_cat)
 
 # load spectrograms
 X = []
@@ -96,26 +91,29 @@ print("Calculating ACMs.")
 
 Vs = nmf.transform(X)
 t_nmf1 = time.time()
-# print how long it took?
+
 print(f"NMF time: {t_nmf1-t_nmf0}")
 
 # save the model using it's own machinery
 print("Saving NMF model and data")
-
 nmf.save(os.path.join(projectPath, 'H5files/', "nmf.h5"), overwrite=True)
 
 # save model parameters and calculated ACMs to the specufex data
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-    print(SpecUFEx_H5_path)
-    print(fileLoad.keys())
     if "SpecUFEx_output" in fileLoad:
         out_group = fileLoad["SpecUFEx_output"]
     else:
         out_group = fileLoad.create_group("SpecUFEx_output")
-    out_group.create_dataset(name="ACM_gain", data=nmf.gain)
-    out_group.create_dataset(name='EW',data=nmf.EW)
-    out_group.create_dataset(name='EA',data=nmf.EA)
-    ACM_group = out_group.create_group("ACM") # activation coefficient matrix
+    if "model_parameters" in fileLoad:
+        model_group = fileLoad["model_parameters"]
+    else:
+        model_group = fileLoad.create_group("model_parameters")
+
+    _overwrite_dataset_if_exists(out_group, name="ACM_gain", data=nmf.gain)
+    _overwrite_dataset_if_exists(model_group, name='EW',data=nmf.EW)
+    _overwrite_dataset_if_exists(model_group, name='EA',data=nmf.EA)
+    _overwrite_dataset_if_exists(model_group, name='ElnWA',data=nmf.ElnWA)
+    ACM_group = _overwrite_group_if_exists(fileLoad, "ACM")
     for i, evID in enumerate(fileLoad['spectrograms']):
         ACM_group.create_dataset(name=evID, data=Vs[i])
 
@@ -139,26 +137,21 @@ print(f"HMM time: {t_hmm1-t_hmm0}")
 print('Saving HMM model and data')
 hmm.save(os.path.join(projectPath, 'H5files/', "hmm.h5"), overwrite=True)
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
+    fp_group = _overwrite_group_if_exists(fileLoad, "fingerprints")
 
-
-    ##fingerprints are top folder
-    if 'fingerprints' in fileLoad.keys():
-        del fileLoad["fingerprints"]
-    fp_group = fileLoad.create_group('fingerprints')
-
-    # write fingerprints: ===============================
+    # save fingerprints
     for i, evID in enumerate(fileLoad['spectrograms']):
         fp_group.create_dataset(name= evID, data=fingerprints[i])
 
-    # write the SpecUFEx out: ===========================
-    As_group = fileLoad.create_group("SpecUFEx_output/As")
-    STM_group = fileLoad.create_group("SpecUFEx_output/STM")
+    # save the A and gam vectors
+    As_group = _overwrite_group_if_exists(fileLoad, "SpecUFEx_output/As")
+    STM_group = _overwrite_group_if_exists(fileLoad, "STM")
 
-    for i, evID in enumerate(fileLoad['spectrograms']):
+    for i, evID in enumerate(fileLoad['fingerprints']):
          As_group.create_dataset(name=evID,data=As[i])
          STM_group.create_dataset(name=evID,data=gams[i]) #STM
 
-    fileLoad.create_dataset(name="SpecUFEx_output/EB", data=hmm.EB)
+    _overwrite_dataset_if_exists(fileLoad, "model_parameters/EB", data=hmm.EB)
     ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
     #RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
 
