@@ -46,14 +46,14 @@ pathWF = path_config["pathWF"]
 dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
 wf_cat_out_path = os.path.join(projectPath, 'wf_cat_out.csv')
 
-if not os.path.isdir(os.path.join(projectPath, '/H5files/')):
+if not os.path.isdir(os.path.join(projectPath, 'H5files/')):
     os.mkdir(os.path.join(projectPath, 'H5files/'))
 
 # get global catalog
 cat = pd.read_csv(path_config["pathCat"])
 
 # get list of waveforms and sort
-wf_filelist = [pathWF+x for x in cat["filename"]]
+wf_filelist = [os.path.join(pathWF, x) for x in cat["filename"]]
 wf_filelist.sort()
 print(wf_filelist[0])
 
@@ -86,7 +86,7 @@ with h5py.File(dataH5_path,'a') as h5file:
     for n, ev in cat.iterrows():
         if n%500==0:
             print(n, '/', len(cat))
-        data = load_wf(pathWF+ev["filename"], lenData, channel_ID)
+        data = load_wf(os.path.join(pathWF, ev["filename"]), lenData, channel_ID)
         if data is not None:
             channel_group.create_dataset(name=str(ev["ev_ID"]), data=data)
             evID_keep.append(ev["ev_ID"])
@@ -95,10 +95,6 @@ with h5py.File(dataH5_path,'a') as h5file:
 
     processing_group = h5file.create_group(f"{station}/processing_info")
     processing_group.create_dataset(name= "sampling_rate_Hz", data=sampling_rate)#,dtype='S')
-    # processing_group.create_dataset(name= "station_info", data=station_info)
-    # processing_group.create_dataset(name= "calibration", data=calib)#,dtype='S')
-    # processing_group.create_dataset(name= "orig_formata", data=_format)#,dtype='S')
-    # processing_group.create_dataset(name= "instr_response", data=instr_response,dtype='S')
     processing_group.create_dataset(name= "lenData", data=lenData)#,dtype='S')
     print("processing_group")
 
