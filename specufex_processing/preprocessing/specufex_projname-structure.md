@@ -36,7 +36,7 @@ The preprocessing workflow generates an HDF5 file that contains the intermediate
       - *nfft*: number of ffts for spectrogram
 <br><br>
 
-  - **sgram_attrs** (group)  
+  - **specufex_attrs** (group)  
   Contains the config file *specufexParams* parameters
     - **attrs** (attributes)
       - *N_patterns_NMF*: initial number of NMF patterns
