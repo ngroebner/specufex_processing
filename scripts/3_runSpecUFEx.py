@@ -13,9 +13,12 @@ import h5py
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
+import time
 import yaml
 
 from specufex import BayesianNonparametricNMF, BayesianHMM
+
+t_start = time.time()
 
 # command line argument instead of hard coding to config file
 parser = argparse.ArgumentParser()
@@ -76,6 +79,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
 specparams = config["specufexParams"]
 
+t_nmf0 = time.time()
 print('Running NMF')
 nmf = BayesianNonparametricNMF(X.shape)
 for i in range(specparams["nmf_nbatch"]):
@@ -89,10 +93,12 @@ for i in range(specparams["nmf_nbatch"]):
     nmf.fit(X[sample], verbose=1)
 
 print("Calculating ACMs.")
-Vs = nmf.transform(X)
-# print how long it took?
 
-# TODO save the nmf model so it isnt redone later if theres a restart
+Vs = nmf.transform(X)
+t_nmf1 = time.time()
+# print how long it took?
+print(f"NMF time: {t_nmf1-t_nmf0}")
+
 # save the model using it's own machinery
 print("Saving NMF model and data")
 
@@ -100,7 +106,12 @@ nmf.save(os.path.join(projectPath, 'H5files/', "nmf.h5"), overwrite=True)
 
 # save model parameters and calculated ACMs to the specufex data
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-    out_group = fileLoad.create_group("SpecUFEX_output")
+    print(SpecUFEx_H5_path)
+    print(fileLoad.keys())
+    if "SpecUFEx_output" in fileLoad:
+        out_group = fileLoad["SpecUFEx_output"]
+    else:
+        out_group = fileLoad.create_group("SpecUFEx_output")
     out_group.create_dataset(name="ACM_gain", data=nmf.gain)
     out_group.create_dataset(name='EW',data=nmf.EW)
     out_group.create_dataset(name='EA',data=nmf.EA)
@@ -108,6 +119,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     for i, evID in enumerate(fileLoad['spectrograms']):
         ACM_group.create_dataset(name=evID, data=Vs[i])
 
+t_hmm0 = time.time()
 print('Running HMM')
 hmm = BayesianHMM(nmf.num_pat, nmf.gain)
 for i in range(specparams["hmm_nbatch"]):
@@ -121,9 +133,8 @@ for i in range(specparams["hmm_nbatch"]):
 
 print("Calculating fingerprints")
 fingerprints, As, gams = hmm.transform(Vs)
-
-# TODO save hmm model
-
+t_hmm1 = time.time()
+print(f"HMM time: {t_hmm1-t_hmm0}")
 
 print('Saving HMM model and data')
 hmm.save(os.path.join(projectPath, 'H5files/', "hmm.h5"), overwrite=True)
@@ -135,32 +146,19 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
         del fileLoad["fingerprints"]
     fp_group = fileLoad.create_group('fingerprints')
 
-    """if 'SpecUFEX_output' in fileLoad.keys():
-        del fileLoad["SpecUFEX_output"]
-    out_group = fileLoad.create_group("SpecUFEX_output")"""
-
     # write fingerprints: ===============================
     for i, evID in enumerate(fileLoad['spectrograms']):
         fp_group.create_dataset(name= evID, data=fingerprints[i])
-        #ACM_group.create_dataset(name=evID,data=As[i]) #ACM
-        #STM_group.create_dataset(name=evID,data=gam[i]) #STM
 
     # write the SpecUFEx out: ===========================
-    # maybe include these, but they are not yet tested.
-    As_group = fileLoad.create_group("SpecUFEX_output/As")
-    STM_group = fileLoad.create_group("SpecUFEX_output/STM")
+    As_group = fileLoad.create_group("SpecUFEx_output/As")
+    STM_group = fileLoad.create_group("SpecUFEx_output/STM")
 
     for i, evID in enumerate(fileLoad['spectrograms']):
          As_group.create_dataset(name=evID,data=As[i])
          STM_group.create_dataset(name=evID,data=gams[i]) #STM
 
-    #gain_group = fileLoad.create_group("SpecUFEX_output/ACM_gain")
-    #W_group                      = fileLoad.create_group("SpecUFEX_output/W")
-    EB_group                     = fileLoad.create_group("SpecUFEX_output/EB")
+    fileLoad.create_dataset(name="SpecUFEx_output/EB", data=hmm.EB)
     ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
     #RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
 
-    #W_group.create_dataset(name='W',data=nmf.EW)
-    EB_group.create_dataset(name=evID,data=hmm.EB)
-    #gain_group.create_dataset(name='gain',data=nmf.gain) #same for all data
-    # RMM_group.create_dataset(name=evID,data=RMM)
