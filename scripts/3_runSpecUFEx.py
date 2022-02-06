@@ -60,56 +60,19 @@ sgramMatOut = os.path.join(projectPath, 'matSgrams/')## for testing
 
 sgram_cat = pd.read_csv(pathSgram_cat)
 
-#%% get spectrograms from H5
-
-# a NUMPY WAY (can certainly be cleaned/tightened up-- very verbose as written:)
-# and I got the shape wrong.. the list .append() adds to axis=0, not 2.
-
-# with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-#     count = 0
-#     for evID in fileLoad['spectrograms']:
-#         count += 1
-#         if count==1:
-#             specMat = fileLoad['spectrograms'].get(evID)[:]
-#             sg_shp = np.shape(specMat)
-#
-#
-# X = np.empty((sg_shp[0],sg_shp[1],count))
-#
-# with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-#     i_count = 0
-#     for evID in fileLoad['spectrograms']:
-#         specMat = fileLoad['spectrograms'].get(evID)[:]
-#         Xis = specMat
-#         if np.shape(Xis) != sg_shp:
-#             print(evID, i_count,': SHAPE IS DIFFERENT!')
-#
-#         X[:,:,i_count] = Xis
-#         i_count += 1
-#         if i_count%500 == 0:
-#             print(i_count)
-
-# ================
-# LIST WAY (how it was written before):
+# load spectrograms
 X = []
 
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-    print(fileLoad.keys())
     for evID in fileLoad['spectrograms']:
         specMat = fileLoad['spectrograms'].get(evID)[:]
         X.append(specMat)
 
     X = np.array(X)
 
-# ================
-# print(np.shape(X))
-# print(X[:,:,-1])
-
-
-
-#%% ============================================================
+# ============================================================
 # Running SpecUFEx
-#%% ============================================================
+# ============================================================
 
 specparams = config["specufexParams"]
 
@@ -118,39 +81,50 @@ nmf = BayesianNonparametricNMF(X.shape)
 for i in range(specparams["nmf_nbatch"]):
     # pick random sample
     print(f"Batch {i}")
-    sample = np.random.choice(X.shape[0], specparams["nmf_batchsz"],replace=False)
+    sample = np.random.choice(
+        X.shape[0],
+        specparams["nmf_batchsz"],
+        replace=False
+    )
     nmf.fit(X[sample], verbose=1)
 
 Vs = nmf.transform(X)
-# print how long it took
+# print how long it took?
 
 # TODO save the nmf model so it isnt redone later if theres a restart
+# save the model using it's own machinery
+print("Saving NMF model and data")
 
-#%%
+nmf.save(os.path.join(dataH5_path, "nmf.h5", overwrite=True))
+
+# save model parameters and calculated ACMs to the specufex data
+with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
+    out_group = fileLoad.create_group("SpecUFEX_output")
+    out_group.create_dataset(name="ACM_gain", data=nmf.gain)
+    out_group.create_dataset(name='EW',data=nmf.EW)
+    out_group.create_dataset(name='EA',data=nmf.EA)
+    ACM_group = out_group.create_group("ACM") # activation coefficient matrix
+    for i, evID in enumerate(fileLoad['spectrograms']):
+        ACM_group.create_dataset(name=evID, data=Vs[i])
+
 print('Running HMM')
 hmm = BayesianHMM(nmf.num_pat, nmf.gain)
 for i in range(specparams["hmm_nbatch"]):
     print(f"Batch {i}")
-    sample = np.random.choice(Vs.shape[0], specparams["nmf_batchsz"],replace=False)
+    sample = np.random.choice(
+        Vs.shape[0],
+        specparams["nmf_batchsz"],
+        replace=False
+    )
     hmm.fit(Vs[sample], verbose=1)
+
 
 fingerprints, As, gams = hmm.transform(Vs)
 
 # TODO save hmm model
 
-#print(fingerprints[0])
 
-# show a fingerprint if you want to .. but not useful for running remotely..
-#plt.imshow(fingerprints[0])
-#plt.show()
-#%%
-#%%
-#%%
-
-# =============================================================================
-# save output to H5
-# =============================================================================
-print('writing all output to h5')
+print('Saving HMM model and data')
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
 
@@ -159,9 +133,9 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
         del fileLoad["fingerprints"]
     fp_group = fileLoad.create_group('fingerprints')
 
-    if 'SpecUFEX_output' in fileLoad.keys():
+    """if 'SpecUFEX_output' in fileLoad.keys():
         del fileLoad["SpecUFEX_output"]
-    out_group = fileLoad.create_group("SpecUFEX_output")
+    out_group = fileLoad.create_group("SpecUFEX_output")"""
 
     # write fingerprints: ===============================
     for i, evID in enumerate(fileLoad['spectrograms']):
@@ -171,20 +145,20 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
     # write the SpecUFEx out: ===========================
     # maybe include these, but they are not yet tested.
-    ACM_group = fileLoad.create_group("SpecUFEX_output/ACM")
+    As_group = fileLoad.create_group("SpecUFEX_output/As")
     STM_group = fileLoad.create_group("SpecUFEX_output/STM")
 
     for i, evID in enumerate(fileLoad['spectrograms']):
-         ACM_group.create_dataset(name=evID,data=As[i]) #ACM
+         As_group.create_dataset(name=evID,data=As[i])
          STM_group.create_dataset(name=evID,data=gams[i]) #STM
 
-    gain_group = fileLoad.create_group("SpecUFEX_output/ACM_gain")
-    W_group                      = fileLoad.create_group("SpecUFEX_output/W")
+    #gain_group = fileLoad.create_group("SpecUFEX_output/ACM_gain")
+    #W_group                      = fileLoad.create_group("SpecUFEX_output/W")
     EB_group                     = fileLoad.create_group("SpecUFEX_output/EB")
     ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
     #RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
 
-    W_group.create_dataset(name='W',data=nmf.EW)
+    #W_group.create_dataset(name='W',data=nmf.EW)
     EB_group.create_dataset(name=evID,data=hmm.EB)
-    gain_group.create_dataset(name='gain',data=nmf.gain) #same for all data
+    #gain_group.create_dataset(name='gain',data=nmf.gain) #same for all data
     # RMM_group.create_dataset(name=evID,data=RMM)
