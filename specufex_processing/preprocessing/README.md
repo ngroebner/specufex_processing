@@ -20,7 +20,7 @@ Convert the folder of waveform files into the standard specufex data format, rep
 >>> 1_makeWaveformsDataset.py example_config.yaml
 ```
 
-This will save an hdf5 file containing the waveforms to the path specified in yoour config file.
+This will save an hdf5 file containing the waveforms to the path specified in your config file.
 
 Next, run the following to convert the waveforms to spectrograms.
 
@@ -44,6 +44,8 @@ The output will be saved to the directory specified in your config file.
    |-- sgram_cat_out_projname.csv
    |-- wf_cat_out.csv
 ```
+
+These are specific file structures for  [SpecUFEx_projname.h5](specufex_projname-structure.md) and [data_projname.h5](data_projname-structure.md).
 
 Some notes: May want to separate the nmf part from the hmm part, so that hmm can be run with several different parameter combos without rerunning nmf.
 
