@@ -105,11 +105,9 @@ The preprocessing workflow generates an HDF5 file that contains the intermediate
       - **evID_0** (group): *dataset*
       - .......
       - **evID_n** (group): *dataset*
-<br> <br>
-
-  - **transformed_spectrograms** (group):  
-      Spectrograms after the dB transformation (input for the NMF step)
-    - **evID_0** (group): *dataset*
-    - .......
-    - **evID_n** (group): *dataset*
+    - **transformed_spectrograms** (group):  
+    Spectrograms after the dB transformation (input for the NMF step)
+      - **evID_0** (group): *dataset*
+      - .......
+      - **evID_n** (group): *dataset*
 
