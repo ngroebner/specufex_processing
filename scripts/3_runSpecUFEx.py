@@ -58,10 +58,10 @@ SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"]
 SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
 pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
 
-# load spectrograms
 X = []
 
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
+    print(fileLoad.keys())
     for evID in fileLoad['spectrograms']:
         specMat = fileLoad['spectrograms'].get(evID)[:]
         X.append(specMat)
@@ -122,6 +122,7 @@ print('Running HMM')
 hmm = BayesianHMM(nmf.num_pat, nmf.gain)
 for i in range(specparams["hmm_nbatch"]):
     print(f"Batch {i}")
+
     sample = np.random.choice(
         Vs.shape[0],
         specparams["nmf_batchsz"],
@@ -130,6 +131,7 @@ for i in range(specparams["hmm_nbatch"]):
     hmm.fit(Vs[sample], verbose=1)
 
 print("Calculating fingerprints")
+
 fingerprints, As, gams = hmm.transform(Vs)
 t_hmm1 = time.time()
 print(f"HMM time: {t_hmm1-t_hmm0}")
@@ -149,7 +151,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
     for i, evID in enumerate(fileLoad['fingerprints']):
          As_group.create_dataset(name=evID,data=As[i])
-         STM_group.create_dataset(name=evID,data=gams[i]) #STM
+         STM_group.create_dataset(name=evID,data=gams[i])
 
     _overwrite_dataset_if_exists(fileLoad, "model_parameters/EB", data=hmm.EB)
     ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")

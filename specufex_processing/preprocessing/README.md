@@ -4,20 +4,20 @@
 
 There are three steps in the preprocessing workflow for Specufex:
 
-1. Given a catalog of of events, a directory of waveform files corresponding to those events, and a configuration file, the waveforms are saved in a standard formnat to an hdf5 file ([1_makeWavefromsDataset.py](1_makeWaveformsDataset.py)).
+1. Given a catalog of of events, a directory of waveform files corresponding to those events, and a configuration file, the waveforms are saved in a standard format to an hdf5 file ([1_makeWavefromsDataset.py](1_makeWaveformsDataset.py)).
 
 2. The waveforms are then converted into spectrograms, and the spectrograms are saved to hdf5 ([2_convertToSpectrograms.py](2_convertToSpectrograms.py)).
 
 3. Specufex is run on the resulting spectrograms, and fingerprints, etc, are written to a standardized hdf5file.
 
-To get started, create a catalog for the events of interest in the standard catalog structure below. The catalog is very simple, and contains the minimum information needed to run specufex. As this is a minimum specification, your catalog can contain additional data columns, but must contains at least _ev_ID_, _filename_, and _timestamp_.
+To get started, create a catalog for the events of interest in the standard catalog structure below. The catalog is very simple, and contains the minimum information needed to run specufex. As this is a minimum specification, your catalog can contain additional data columns, but must contain at least _ev_ID_, _filename_, and _timestamp_.
 
 Next, create a config file with the parameters needed for the run. An example config file is [here](example_config.yml).
 
 Convert the folder of waveform files into the standard specufex data format, replacing ```example_config.yaml``` with the name of your config file:
 
 ``` bash
->>> python 1_makeWaveformsDataset.py example_config.yaml
+>>> 1_makeWaveformsDataset.py example_config.yaml
 ```
 
 This will save an hdf5 file containing the waveforms to the path specified in yoour config file.
@@ -25,13 +25,13 @@ This will save an hdf5 file containing the waveforms to the path specified in yo
 Next, run the following to convert the waveforms to spectrograms.
 
 ``` bash
->>> python 2_convertToSpectrograms.py example_config.py
+>>> 2_convertToSpectrograms.py example_config.py
 ```
 
 Finally, the following will run specufex on the spectrograms and calculate fingerprints. Note that this will take considerably longer than the last two steps.
 
 ``` bash
->>> python 3_runSpecUFEx.py example_config.yaml
+>>> 3_runSpecUFEx.py example_config.yaml
 ```
 
 The output will be saved to the directory specified in your config file.
