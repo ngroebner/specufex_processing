@@ -88,6 +88,7 @@ if __name__ == "__main__":
 
     ## I'm not sure what these do
 
+    print(cat_keep_sgram)
     # save local catalog to original datafile
     with h5py.File(dataH5_path,'a') as h5file:
         if f'catalog/cat_by_sta/{station}' in h5file.keys():

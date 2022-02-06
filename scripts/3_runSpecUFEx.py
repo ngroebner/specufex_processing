@@ -61,9 +61,8 @@ pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
 X = []
 
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-    print(fileLoad.keys())
-    for evID in fileLoad['spectrograms']:
-        specMat = fileLoad['spectrograms'].get(evID)[:]
+    for evID in fileLoad['spectrograms/transformed_spectrograms']:
+        specMat = fileLoad['spectrograms/transformed_spectrograms'].get(evID)[:]
         X.append(specMat)
 
     X = np.array(X)
@@ -114,7 +113,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     _overwrite_dataset_if_exists(model_group, name='EA',data=nmf.EA)
     _overwrite_dataset_if_exists(model_group, name='ElnWA',data=nmf.ElnWA)
     ACM_group = _overwrite_group_if_exists(fileLoad, "ACM")
-    for i, evID in enumerate(fileLoad['spectrograms']):
+    for i, evID in enumerate(fileLoad['spectrograms/transformed_spectrograms']):
         ACM_group.create_dataset(name=evID, data=Vs[i])
 
 t_hmm0 = time.time()
@@ -142,7 +141,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     fp_group = _overwrite_group_if_exists(fileLoad, "fingerprints")
 
     # save fingerprints
-    for i, evID in enumerate(fileLoad['spectrograms']):
+    for i, evID in enumerate(fileLoad['spectrograms/transformed_spectrograms']):
         fp_group.create_dataset(name= evID, data=fingerprints[i])
 
     # save the A and gam vectors
