@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="specufex-processing",
-    version="0.1.0",
+    version="0.2.0",
     author="Specufex team",
     author_email="groe0029@umn.edu",
     description="Pre and post processing tools for specufex ",
