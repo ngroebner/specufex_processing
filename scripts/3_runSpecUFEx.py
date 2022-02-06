@@ -156,3 +156,9 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
     #RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
 
+    # write specufex parameters to the file
+    specuattr = _overwrite_group_if_exists(fileLoad, "specufex_attrs")
+    for attr in specparams.keys():
+        specuattr.attrs[attr] = specparams[attr]
+
+

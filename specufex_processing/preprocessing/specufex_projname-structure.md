@@ -4,6 +4,49 @@ The preprocessing workflow generates an HDF5 file that contains the intermediate
 
 - ***SpecUFEx_projname.h5***
 
+  - **path_attrs** (group)  
+  Contains the config file *path* parameters
+    - **attrs** (attributes)
+      - *key*: experiment name, used for filenames
+      - *projectPath*: base path for entire project
+      - *pathCat*: path to the original waveforms catalog
+      - *pathWF*: directory containing waveform files
+      - *h5name*: not really sure
+<br><br>
+
+  - **dataparam_attrs** (group)  
+  Contains the config file *dataParams* parameters
+    - **attrs** (attributes)
+      - *network*: SEED format
+      - *station*: SEED format
+      - *channel*: SEED format
+      - *channel_ID*: index number for obspy stream object
+      - *sampling_rate*: in Hz
+      - *filetype*: filetype for waveforms
+<br><br>
+
+  - **sgram_attrs** (group)  
+  Contains the config file *sgramParams* parameters
+    - **attrs** (attributes)
+      - *sgramType*: not currently used, placeholder if we implement wavelet transform
+      - *fmin*: minimum frequency for trimming
+      - *fmax*: maximum frequency for trimming
+      - *winLen_Sec*: window length in seconds
+      - *fracOverlap*: window overlap fraction
+      - *nfft*: number of ffts for spectrogram
+<br><br>
+
+  - **sgram_attrs** (group)  
+  Contains the config file *specufexParams* parameters
+    - **attrs** (attributes)
+      - *N_patterns_NMF*: initial number of NMF patterns
+      - *nmf_batchsz*: samples per NMF training batch
+      - *nmf_nbatch*: number of NMF training batches
+      - *N_states_HMM*: number of HMM states
+      - *hmm_batchsz*: samples per HMM training batch
+      - *hmm_nbatch*: number of HMM training batches
+<br><br>
+
   - **ACM** (group)  
   Activation coefficient matrices
     - **evID_0** (group): *dataset*

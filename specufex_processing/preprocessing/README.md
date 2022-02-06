@@ -6,6 +6,8 @@ There are three steps in the preprocessing workflow for Specufex:
 
 1. Given a catalog of of events, a directory of waveform files corresponding to those events, and a configuration file, the waveforms are saved in a standard format to an hdf5 file ([1_makeWavefromsDataset.py](1_makeWaveformsDataset.py)).
 
+1a. *Optional:* Calculate energy and entropy for your individual waveforms ([calculate_energy.py](calculate_energy.py))
+
 2. The waveforms are then converted into spectrograms, and the spectrograms are saved to hdf5 ([2_convertToSpectrograms.py](2_convertToSpectrograms.py)).
 
 3. Specufex is run on the resulting spectrograms, and fingerprints, etc, are written to a standardized hdf5file.
@@ -21,6 +23,14 @@ Convert the folder of waveform files into the standard specufex data format, rep
 ```
 
 This will save an hdf5 file containing the waveforms to the path specified in your config file.
+
+> *Optional*
+>
+> If you need energy and/or entropy calculations, run the following to calculate these and save the values to the ```data_projname.h5``` file.
+>
+> ``` bash
+> >>> calculate_energy.py example_config.py
+> ```
 
 Next, run the following to convert the waveforms to spectrograms.
 
