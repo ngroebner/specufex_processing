@@ -54,6 +54,7 @@ if __name__ == "__main__":
     # get sgram params
     fmin = config_sgram['fmin']
     fmax = config_sgram['fmax']
+    norm_waveforms = config_sgram["norm_waveforms"]
     winLen_Sec = config_sgram['winLen_Sec']
     fracOverlap = config_sgram['fracOverlap']
     nfft = config_sgram['nfft']
@@ -66,7 +67,9 @@ if __name__ == "__main__":
                         fracOverlap,
                         nfft,
                         fmin,
-                        fmax)
+                        fmax,
+                        norm_waveforms=norm_waveforms
+    )
 
     # pad short spectrograms with zeros
 

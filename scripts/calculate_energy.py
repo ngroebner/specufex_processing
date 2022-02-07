@@ -8,6 +8,7 @@ import h5py
 import yaml
 
 from specufex_processing.preprocessing.energy import waveform_energy
+from specufex_processing.utils import _overwrite_group_if_exists
 
 parser = argparse.ArgumentParser()
 parser.add_argument("config_filename", help="Path to configuration file.")
@@ -34,9 +35,9 @@ dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
 
 with h5py.File(dataH5_path,'a') as h5file:
 
-    energy_group = h5file.create_group("energy")
+    energy_group = _overwrite_group_if_exists(h5file, "energy")
     energy_channel_grp = h5file.create_group(f"energy/{station}/{channel}")
-    entropy_group = h5file.create_group("entropy")
+    entropy_group = _overwrite_group_if_exists(h5file, "entropy")
     entropy_channel_grp = h5file.create_group(f"entropy/{station}/{channel}")
 
     evIDs = list(h5file["waveforms"][station][channel].keys())
