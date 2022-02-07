@@ -75,7 +75,7 @@ specparams = config["specufexParams"]
 
 t_nmf0 = time.time()
 print('Running NMF')
-nmf = BayesianNonparametricNMF(X.shape)
+nmf = BayesianNonparametricNMF(X.shape, num_pat=specparams["N_patterns_NMF"])
 for i in range(specparams["nmf_nbatch"]):
     # pick random sample
     print(f"Batch {i}")
@@ -118,7 +118,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 
 t_hmm0 = time.time()
 print('Running HMM')
-hmm = BayesianHMM(nmf.num_pat, nmf.gain)
+hmm = BayesianHMM(nmf.num_pat, nmf.gain, num_state=specparams["N_states_HMM"])
 for i in range(specparams["hmm_nbatch"]):
     print(f"Batch {i}")
 
