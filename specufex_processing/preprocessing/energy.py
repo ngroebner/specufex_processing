@@ -19,4 +19,5 @@ def waveform_energy(waveform,method):
         waveform_env = (np.abs(waveform))**2
         waveform_env_n = waveform_env/np.max(waveform_env)
         enrgy = np.sum(waveform_env)
-    return enrgy, entropy(waveform_env_n/np.sum(waveform_env_n))
+    entrpy = entropy(waveform_env_n/np.sum(waveform_env_n))
+    return enrgy, entrpy
