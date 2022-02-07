@@ -46,6 +46,6 @@ with h5py.File(dataH5_path,'a') as h5file:
         waveform = h5file["waveforms"][station][channel][evID]
         energy, entropy = waveform_energy(waveform, "abssquared")
         energy_channel_grp.create_dataset(name=evID, data=energy)
-        entropy_channel_grp.create_dataset(name=evID, data=energy)
+        entropy_channel_grp.create_dataset(name=evID, data=entropy)
 
 print(f"Done. Saved to {dataH5_path}")
