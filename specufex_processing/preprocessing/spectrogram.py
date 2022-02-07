@@ -13,7 +13,7 @@ class SpectrogramMaker:
 
     def __init__(self,fs,nperseg,noverlap,nfft,
                        mode,scaling,
-                       trim=False,fmin=None,fmax=None):
+                       trim=False,fmin=None,fmax=None,norm_waveforms=True):
         self.fs = fs
         self.nperseg = nperseg
         self.noverlap = noverlap
@@ -23,8 +23,9 @@ class SpectrogramMaker:
         self.trim = trim
         self.fmin = fmin
         self.fmax = fmax
+        self.norm_waveforms=norm_waveforms
 
-    def __call__(self, waveform, normalize=True):
+    def __call__(self, waveform, normalize=None):
         """Converts a waveform into a transformed spectrogram
         Returns
         -------
@@ -33,7 +34,9 @@ class SpectrogramMaker:
             STFT_0 - the original, non-transformed spectrogram
 
         """
-
+        if normalize == None :
+            normalize = self.norm_waveforms
+            print(f'Using {self.norm_waveforms} for normalization')
         ##### Normalize each waveform #####
         if normalize:
             waveform = waveform / np.abs(waveform).max()

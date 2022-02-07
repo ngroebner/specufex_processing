@@ -24,6 +24,7 @@ sgramParams:
       winLen_Sec: 1 # window length in seconds
       fracOverlap: 0.25 # window overlap fraction
       nfft: 2000  # padding # isnt this supposed to be a power of 2 ?
+      norm_waveforms: True
 
 #sgramType: "scalogram" # if you are using wavelets
 # other wavelet-specific parameters

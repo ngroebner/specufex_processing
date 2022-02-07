@@ -43,7 +43,7 @@ def test_convertToSpectrograms():
     # run the script
     ret = subprocess.run([
         "python",
-        "../scrfipts/2_convertToSpectrograms.py",
+        "../scripts/2_convertToSpectrograms.py",
         "config_test1.yml"
     ])
 
@@ -64,4 +64,3 @@ def test_runSpecufex():
     ])
 
     assert ret.returncode == 0
-

@@ -10,7 +10,7 @@ import yaml
 from specufex_processing.preprocessing import dataframe2hdf
 from specufex_processing.preprocessing.spectrogram import create_spectrograms, pad_spects
 from specufex_processing.utils import _overwrite_group_if_exists
-
+import pdb
 
 if __name__ == "__main__":
 
@@ -70,7 +70,6 @@ if __name__ == "__main__":
                         fmax,
                         norm_waveforms=norm_waveforms
     )
-
     # pad short spectrograms with zeros
 
     spects = pad_spects(spects)
@@ -82,7 +81,8 @@ if __name__ == "__main__":
     spectmaker.save2hdf5(spects, raw_spects, evIDs, SpecUFEx_H5_path)
 
     # merge catalogs
-    cat_keep_sgram = wf_cat[wf_cat['ev_ID'].isin(evIDs)]
+    #pdb.set_trace()
+    cat_keep_sgram = wf_cat[wf_cat['ev_ID'].astype(str).isin(evIDs)]
 
     try:
         cat_keep_sgram = cat_keep_sgram.drop(['Unnamed: 0'],axis=1)
@@ -93,7 +93,6 @@ if __name__ == "__main__":
         os.remove(pathSgram_cat)
 
     cat_keep_sgram.to_csv(pathSgram_cat)
-
     # save local catalog to original datafile
     with h5py.File(dataH5_path,'a') as h5file:
         if f'catalog/cat_by_sta/{station}' in h5file.keys():

@@ -6,7 +6,6 @@ example: Parkfield repeaters::
 @author: theresasawi
 """
 
-
 import argparse
 #import glob
 import os
@@ -51,7 +50,7 @@ if not os.path.isdir(os.path.join(projectPath, 'H5files/')):
 
 # get global catalog
 cat = pd.read_csv(path_config["pathCat"])
-
+cat['ev_ID'].astype(str,copy=False)
 # get list of waveforms and sort
 wf_filelist = [os.path.join(pathWF, x) for x in cat["filename"]]
 wf_filelist.sort()
