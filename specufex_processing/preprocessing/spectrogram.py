@@ -24,7 +24,7 @@ class SpectrogramMaker:
         self.fmin = fmin
         self.fmax = fmax
 
-    def __call__(self, waveform):
+    def __call__(self, waveform, normalize=True):
         """Converts a waveform into a transformed spectrogram
         Returns
         -------
@@ -33,6 +33,11 @@ class SpectrogramMaker:
             STFT_0 - the original, non-transformed spectrogram
 
         """
+
+        ##### Normalize each waveform #####
+        if normalize:
+            waveform = waveform / np.abs(waveform).max()
+
         fSTFT, tSTFT, STFT_raw = spectrogram(waveform,fs=self.fs,nperseg=self.nperseg,
                                             noverlap=self.noverlap,nfft=self.nfft,
                                             scaling=self.scaling,axis=-1,mode=self.mode)
@@ -101,6 +106,7 @@ def create_spectrograms(
     nfft,
     fmin,
     fmax,
+    norm_waveforms=True
 ):
     """Create spectrograms from h5 file
     """
@@ -123,10 +129,17 @@ def create_spectrograms(
         mode='magnitude'
         scaling='spectrum'
 
-        spectmaker = SpectrogramMaker(fs=fs,nperseg=nperseg,
-                            noverlap=noverlap,nfft=nfft,
-                            mode=mode,scaling=scaling,
-                            trim=True,fmin=fmin,fmax=fmax)
+        spectmaker = SpectrogramMaker(
+            fs=fs,
+            nperseg=nperseg,
+            noverlap=noverlap,
+            nfft=nfft,
+            mode=mode,
+            scaling=scaling,
+            trim=True,
+            fmin=fmin,
+            fmax=fmax,
+            norm_waveforms=norm_waveforms)
 
         badevIDs = []
         evIDs = []
