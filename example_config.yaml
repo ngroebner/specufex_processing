@@ -6,7 +6,7 @@ paths:
       pathCat: "cat/path/wf_cat.csv" # path to where the catalog resides, including the file name
       pathWF: "WF/path/" # path to directory where the waveform files are
       h5name: 'filename.h5' # if we want it to be different from the key !
-
+      
 # Raw data parameters
 dataParams:
       network: 'N' # SEED format for network, station, channel
@@ -48,5 +48,9 @@ clusteringParams: # toggles are 0=off, 1=on
       K_vals: [2,3,4,5,6]
       K_save: 'K_opt' # or [5] a list of ints from K_vals ?
 
+# Distance Matrix Calculations
+distanceParams :
+  frac_allowed : 0.1 # max 10% shift of the total waveform length
+  resample_val : 1
 
 ... # three dots ends the yaml file
