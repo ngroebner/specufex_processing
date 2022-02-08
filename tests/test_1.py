@@ -71,3 +71,15 @@ def test_runSpecufex():
     ])
 
     assert ret.returncode == 0
+
+def test_rundistance():
+    """Test 4_DistanceCalc.py
+    Only tests successful execution, not output.
+    """
+    ret = subprocess.run([
+        "python",
+        "../scripts/4_DistanceCalc.py",
+        "config_test1.yml"
+    ])
+
+    assert ret.returncode == 0
