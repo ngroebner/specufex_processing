@@ -2,23 +2,25 @@ import matplotlib.pyplot as plt
 import h5py
 import pandas as pd
 import numpy as np
+import os
+import time
+import sys
+
 #from obspy import read
 
-import datetime as dtt
-
-import datetime
-from scipy.stats import kurtosis
-from scipy import spatial
-
-from scipy.signal import butter, lfilter
+#import datetime as dtt
+#import datetime
+#from scipy.stats import kurtosis
+#from scipy import spatial
+#from scipy.signal import butter, lfilter
 #import librosa
 # # sys.path.insert(0, '../01_DataPrep')
-from scipy.io import loadmat
+#from scipy.io import loadmat
+# import scipy as sp
+# import scipy.signal
+
 from sklearn.decomposition import PCA
-# sys.path.append('.')
-from sklearn.metrics import silhouette_samples
-import scipy as sp
-import scipy.signal
+from sklearn.metrics import silhouette_samples, silhouette_score
 
 from sklearn.metrics import r2_score
 from sklearn.cluster import KMeans
@@ -26,6 +28,11 @@ import sklearn.metrics
 
 from sklearn.preprocessing import MinMaxScaler,RobustScaler,StandardScaler
 import matplotlib as mpl
+
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
+
+import seaborn as sns
+import gc
 
 
 ##################################################################################################
@@ -228,7 +235,6 @@ def plot_silloute_scores_kmeans(sample_silhouette_values,cluster_labels,n_clust,
     plt.close()
     plt.ion()
 
-
 def get_representative_waveforms_kmeans(cluster_name,col_name,
                                         norm_waveforms,
                                         n_clust,df_merged_sub,best_rep,
@@ -267,9 +273,9 @@ def get_representative_waveforms_kmeans(cluster_name,col_name,
             x = norm_waveforms[indx_use]
             #print(num_ev_ac,tmp2[k])
             if k == 0:
-                plt.plot(x.flatten() + count + count,alpha=1,label='Cluster : '+str(count),color=tmp[col_name].values[0])
+                plt.plot(x.flatten() + count + count,alpha=.2,label='Cluster : '+str(count),color=tmp[col_name].values[0])
             else :
-                plt.plot(x.flatten() + count + count,alpha=0.3,label='',color=tmp[col_name].values[0])
+                plt.plot(x.flatten() + count + count,alpha=0.05,label='',color=tmp[col_name].values[0])
 
     plt.xlabel('Waveform Time')
     plt.xlim(left=0,right=wave_length)

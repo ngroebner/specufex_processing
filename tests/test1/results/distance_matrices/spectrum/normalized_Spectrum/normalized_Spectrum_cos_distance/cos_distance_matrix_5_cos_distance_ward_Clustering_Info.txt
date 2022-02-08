@@ -1,0 +1,8 @@
+Cluster Names : [1 2 3 4 5]
+NC_5_cos_distance_ward
+1    1
+2    1
+3    2
+4    3
+5    3
+Name: NC_5_cos_distance_ward, dtype: int64

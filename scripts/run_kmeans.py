@@ -11,11 +11,15 @@ import pandas as pd
 from importlib import reload
 from specufex_processing.clustering import functions_clustering as funclust
 from specufex_processing.preprocessing import normalize_waveform
+from specufex_processing.plotting import Basic_config
 
 import yaml
 import argparse
 import os
 import matplotlib as mpl
+
+
+Basic_config.set_plot_prop()
 
 # command line argument instead of hard coding to config file
 parser = argparse.ArgumentParser()

@@ -1,0 +1,6 @@
+Cluster Names : [1 2 3]
+NC_3_L1_distance_ward
+1    8
+2    1
+3    1
+Name: NC_3_L1_distance_ward, dtype: int64
