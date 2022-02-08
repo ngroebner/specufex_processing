@@ -6,7 +6,7 @@ paths:
       pathCat: "cat/path/wf_cat.csv" # path to where the catalog resides, including the file name
       pathWF: "WF/path/" # path to directory where the waveform files are
       h5name: 'filename.h5' # if we want it to be different from the key !
-      
+
 # Raw data parameters
 dataParams:
       network: 'N' # SEED format for network, station, channel
@@ -48,9 +48,17 @@ clusteringParams: # toggles are 0=off, 1=on
       K_vals: [2,3,4,5,6]
       K_save: 'K_opt' # or [5] a list of ints from K_vals ?
 
-# Distance Matrix Calculations
+# Distance Matrix Calculations - waveforms,
 distanceParams :
-  frac_allowed : 0.1 # max 10% shift of the total waveform length
-  resample_val : 1
+      frac_shift_allowed : 0.1 # max 10% shift of the total waveform length for cross_correlation
+      distance_waveforms : True # Calculate waveform distance matrices
+      distance_nonNorm : True  # Calculate the distances without normalization also
+      waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before distance calculations or not - Other choices are MinMaxScaler,RobustScaler,StandardScaler
+      distance_spectra : True         # Distance matrix between individual spectra
+      distance_spectra_nonNorm : True  # Calculate the distances without normalization also
+      distance_fingerprint : True  # Distances between fingerprints
+      overwrite_distance : False    # Overwrite existing distance matrices if they exist
+      multiprocessing : True       # Use multiprocessing or not
+      n_cores         : 12         # Number of cores to use
 
 ... # three dots ends the yaml file
