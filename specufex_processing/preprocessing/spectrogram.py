@@ -135,12 +135,16 @@ def create_spectrograms(
         for evID in fileLoad[f'waveforms/{station}/{channel}'].keys():
             waveform = fileLoad[f'waveforms/{station}/{channel}/{evID}'][:]
             STFT, STFT_0 = spectmaker(waveform)
-            if np.any(np.isnan(STFT)) or np.any(STFT)==np.inf or np.any(STFT)==-np.inf:
+            if np.any(np.isnan(STFT)) or np.any(STFT==np.inf) or np.any(STFT==-np.inf):
                 badevIDs.append(evID)
                 # if you get a bad one, fill with zeros
                 # this is to preserve ordering
                 STFT = np.zeros_like(STFT)
                 print(f"evID {evID} set to zero, bad data")
+            """if np.median(STFT_0) == 0:
+                print(f"Zero median: evID {evID}")
+            if np.all(STFT==0):
+                print(f"STFT all zero: evID {evID}")"""
             evIDs.append(evID)
             spects.append(STFT)
             raw_spects.append(STFT_0)
