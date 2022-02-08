@@ -52,6 +52,10 @@ distanceParams :
   multiprocessing : True       # Use multiprocessing or not
   n_cores         : 12         # Number of cores to use
   make_dist_plots : True
+  do_clustering_dist : True    # Make dendrograms with the distance matrices and save the catalogs
+  clustering_measure : 'ward'  # Other common choices for agglomerative clustering are   (['average','centroid','median','ward'])
+  K_vals: [3,4,5]              # Number of clusters to choose for the catalogs
+  num_repr : 5                 # Number to plot for waveform plots (how many reprensentive waveforms per cluster)
 
 # Clustering parameters
 clusteringParams: # toggles are 0=off, 1=on
@@ -61,10 +65,11 @@ clusteringParams: # toggles are 0=off, 1=on
       use_PCA : False
       use_PCA_method : 'var' # Or 'num' for a number of PCA components
       runSilhouette: 'False' # Find the optimal value of K means clustering
-      topF : 1 # Top clustering labels to use
-      Kmax: 5 # max number of K means clusters
-      K_vals: [2,3,4,5]
+      topF : 1 # Top clustering labels to use (how many reprensentive waveforms per cluster)
+      num_repr : 5 # Number to plot for waveform plots (how many reprensentive waveforms per cluster)
+      Kmax: 5 # max number of K means clusters (for runSilhouette)
+      K_vals: [2,3,4,5]  ## If not using runSilhouette
       make_plots  : True
       make_repr_wave : True
-      waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before distance calculations or not - Other choices are MinMaxScaler,RobustScaler,StandardScaler
+      waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before plotting - Other choices are MinMaxScaler,RobustScaler,StandardScaler
 ... # three dots ends the yaml file

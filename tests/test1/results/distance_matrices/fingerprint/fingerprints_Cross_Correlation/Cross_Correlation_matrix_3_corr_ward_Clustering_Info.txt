@@ -1,0 +1,6 @@
+Cluster Names : [1 2 3]
+NC_3_corr_ward
+1    6
+2    3
+3    1
+Name: NC_3_corr_ward, dtype: int64
