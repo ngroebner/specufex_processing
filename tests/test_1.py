@@ -83,3 +83,15 @@ def test_rundistance():
     ])
 
     assert ret.returncode == 0
+
+def test_cluster():
+    """Test run_kmeans.py
+    Only tests successful execution, not output.
+    """
+    ret = subprocess.run([
+        "python",
+        "../scripts/run_kmeans.py",
+        "config_test1.yml"
+    ])
+
+    assert ret.returncode == 0

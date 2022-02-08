@@ -60,9 +60,11 @@ clusteringParams: # toggles are 0=off, 1=on
       cum_pve_thresh : 0.8 # Percentage of variance explained
       use_PCA : False
       use_PCA_method : 'var' # Or 'num' for a number of PCA components
-      runSilhouette: 'True' # Find the optimal value of K means clustering
+      runSilhouette: 'False' # Find the optimal value of K means clustering
       topF : 1 # Top clustering labels to use
       Kmax: 5 # max number of K means clusters
       K_vals: [2,3,4,5]
-
+      make_plots  : True
+      make_repr_wave : True
+      waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before distance calculations or not - Other choices are MinMaxScaler,RobustScaler,StandardScaler
 ... # three dots ends the yaml file
