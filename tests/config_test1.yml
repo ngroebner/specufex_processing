@@ -55,12 +55,14 @@ distanceParams :
 
 # Clustering parameters
 clusteringParams: # toggles are 0=off, 1=on
-      numPCA: 3
-      runSilhouette: 'False'
-      toggleFprints: 1
-      toggleSpectra: 0
-      togglePCs: 0
-      K_vals: [2,3,4,5,6]
-      K_save: 'K_opt' # or [5] a list of ints from K_vals ?
+      normalization : None # Normalize the fingerprints or not (StandardScaler, MixMax,RobustScaler)
+      numPCA: 3       # Number of PCAs for the Clustering and visualization
+      cum_pve_thresh : 0.8 # Percentage of variance explained
+      use_PCA : False
+      use_PCA_method : 'var' # Or 'num' for a number of PCA components
+      runSilhouette: 'True' # Find the optimal value of K means clustering
+      topF : 1 # Top clustering labels to use
+      Kmax: 5 # max number of K means clusters
+      K_vals: [2,3,4,5]
 
 ... # three dots ends the yaml file
