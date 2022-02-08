@@ -71,6 +71,7 @@ if __name__ == "__main__":
                         fmax,
                         norm_waveforms=norm_waveforms
     )
+
     # pad short spectrograms with zeros
 
     spects = pad_spects(spects)
