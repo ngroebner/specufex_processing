@@ -24,6 +24,8 @@ setuptools.setup(
         "scripts/2_convertToSpectrograms.py",
         "scripts/2a_plotSpectrum.py",
         "scripts/3_runSpecUFEx.py",
-        "scripts/calculate_energy.py"
+        "scripts/calculate_energy.py",
+        "scripts/4_DistanceCalc.py",
+        "scripts/run_kmeans.py"
     ],
 )

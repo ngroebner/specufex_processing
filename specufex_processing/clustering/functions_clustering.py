@@ -1,35 +1,38 @@
-
-
+import matplotlib.pyplot as plt
 import h5py
 import pandas as pd
 import numpy as np
+import os
+import time
+import sys
+
 #from obspy import read
 
-import datetime as dtt
-
-import datetime
-from scipy.stats import kurtosis
-from  sklearn.preprocessing import StandardScaler
-from  sklearn.preprocessing import MinMaxScaler
-from scipy import spatial
-
-from scipy.signal import butter, lfilter
+#import datetime as dtt
+#import datetime
+#from scipy.stats import kurtosis
+#from scipy import spatial
+#from scipy.signal import butter, lfilter
 #import librosa
 # # sys.path.insert(0, '../01_DataPrep')
-from scipy.io import loadmat
+#from scipy.io import loadmat
+# import scipy as sp
+# import scipy.signal
+
 from sklearn.decomposition import PCA
-# sys.path.append('.')
-from sklearn.metrics import silhouette_samples
-import scipy as sp
-import scipy.signal
+from sklearn.metrics import silhouette_samples, silhouette_score
 
 from sklearn.metrics import r2_score
 from sklearn.cluster import KMeans
 import sklearn.metrics
 
+from sklearn.preprocessing import MinMaxScaler,RobustScaler,StandardScaler
+import matplotlib as mpl
 
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 
-
+import seaborn as sns
+import gc
 
 
 ##################################################################################################
@@ -44,156 +47,81 @@ import sklearn.metrics
 #                                         |___/
 ##################################################################################################
 
-
-
-def linearizeFP(path_proj,outfile_name,cat00):
-
+def linearizeFP(SpecUFEx_H5_path,cat0):
     X = []
-    with h5py.File(path_proj + outfile_name,'r') as MLout:
-        for evID in cat00.event_ID:
-            fp = MLout['SpecUFEX_output/fprints'].get(str(evID))[:]
+    evID_hdf5 = []
+    with h5py.File(SpecUFEx_H5_path,'r') as MLout:
+        for evID in MLout['fingerprints']:
+            fp = MLout['fingerprints'].get(str(evID))[:]
             linFP = fp.reshape(1,len(fp)**2)[:][0]
             X.append(linFP)
+            evID_hdf5.append(evID)
 
     X = np.array(X)
-
-    return X
-
+    cols = [f'X{pp}' for pp in range(1,X.shape[1]+1)]
+    pca_df = pd.DataFrame(data=X,columns=cols)
+    pca_df['ev_ID'] = evID_hdf5
+    cat0['ev_ID'] = cat0['ev_ID'].astype(str)
+    PCA_df = cat0.merge(pca_df, right_on='ev_ID', left_on='ev_ID')
+    return X,evID_hdf5,PCA_df
 
 # .oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo..oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo
 
-def PCAonFP(X,cat00,numPCA=3,stand=True):
+def PCAonFP(X,evID_hdf5,cat0,numPCA=3,normalization=None):
     ## performcs pca on fingerprints, returns catalog with PCs for each event
-
-
-    # X = linearizeFP(path_proj,outfile_name,cat00)
-
-
-    if stand=='StandardScaler':
+    if normalization=='RobustScaler':
+        X_st = RobustScaler().fit_transform(X)
+    if normalization=='StandardScaler':
         X_st = StandardScaler().fit_transform(X)
-    elif stand=='MinMax':
-        X_st = MinMaxScaler().fit_transform(X)
+    elif normalization=='MinMax':
+        X_st = MinMaxScaler((-1,1)).fit_transform(X)
     else:
         X_st = X
 
 
     sklearn_pca = PCA(n_components=numPCA)
-
     Y_pca = sklearn_pca.fit_transform(X_st)
-
     pc_cols = [f'PC{pp}' for pp in range(1,numPCA+1)]
+    pca_df = pd.DataFrame(data=Y_pca,columns=pc_cols)
+    pca_df['ev_ID'] = evID_hdf5
+    cat0['ev_ID'] = cat0['ev_ID'].astype(str)
+    PCA_df = cat0.merge(pca_df, right_on='ev_ID', left_on='ev_ID')
+    return PCA_df, Y_pca
 
-    pca_df = pd.DataFrame(data=Y_pca,columns=pc_cols,index=cat00.index)
-
-    PCA_df = pd.concat([cat00,pca_df], axis=1)  # not merge on IDs? no chance of re-sequencing ?
-
-    return sklearn_pca, PCA_df, Y_pca # why return sklearn_pca ?
-
-
-
-
-
-
-# .oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo..oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo
-# Percent variance explained?
-
-def PVEofPCA(path_proj,outfile_name,cat00,numPCMax=100,cum_pve_thresh=.8,stand='MinMax'):
-
-    X = linearizeFP(path_proj,outfile_name,cat00)
-
-
-    if stand=='StandardScaler':
+def PVEofPCA(X,evID_hdf5,cat0,cum_pve_thresh=.8,normalization=None):
+    ## performcs pca on fingerprints, returns catalog with PCs for each event
+    if normalization=='RobustScaler':
+        X_st = RobustScaler().fit_transform(X)
+    if normalization=='StandardScaler':
         X_st = StandardScaler().fit_transform(X)
-    elif stand=='MinMax':
-        X_st = MinMaxScaler().fit_transform(X)
+    elif normalization=='MinMax':
+        X_st = MinMaxScaler((-1,1)).fit_transform(X)
     else:
         X_st = X
 
-
+    numPCMax=int(X.shape[1]) - 10
     numPCA_range = range(1,numPCMax)
-
-
     for numPCA in numPCA_range:
-
         sklearn_pca = PCA(n_components=numPCA)
-
         Y_pca = sklearn_pca.fit_transform(X_st)
-
         pve = sklearn_pca.explained_variance_ratio_
-
         cum_pve = pve.sum()
-        print(numPCA,cum_pve)
         if cum_pve >= cum_pve_thresh:
-
-            print('break')
             break
-
-
-
+    print(f'Using {numPCA} PCA components with {cum_pve} variance explained')
     pc_cols = [f'PC{pp}' for pp in range(1,numPCA+1)]
+    pca_df = pd.DataFrame(data=Y_pca,columns=pc_cols)
+    pca_df['ev_ID'] = evID_hdf5
+    cat0['ev_ID'] = cat0['ev_ID'].astype(str)
+    PCA_df = cat0.merge(pca_df, right_on='ev_ID', left_on='ev_ID')
+    return PCA_df, Y_pca
 
-    PCA_df = pd.DataFrame(data = Y_pca, columns = pc_cols)
+def calcSilhScore(X,cat0,range_n_clusters,topF=5):
 
-
-    return PCA_df, numPCA, cum_pve
-
-
-# .oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo..oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo
-
-
-def getTopFCat(cat0,topF,startInd=0,distMeasure = "SilhScore"):
     """
-
-
     Parameters
     ----------
-    cat00 : all events
-    topf : get top F events in each cluster
-    startInd : can skip first event if needed
-    Kopt : number of clusters
-    distMeasure : type of distance emtrix between events. Default is "SilhScore",
-    can also choose euclidean distance "EucDist"
-
-    Returns
-    -------
-    catall : TYPE
-        DESCRIPTION.
-
-    """
-
-
-    cat0['event_ID'] = [int(f) for f in  cat0['event_ID']]
-    if distMeasure == "SilhScore":
-        cat0 = cat0.sort_values(by='SS',ascending=False)
-
-    if distMeasure == "EucDist":
-        cat0 = cat0.sort_values(by='euc_dist',ascending=True)
-
-    # try:
-    cat0 = cat0[startInd:startInd+topF]
-    # except: #if less than topF number events in cluster
-    #     print(f"sampled all {len(cat0)} events in cluster!")
-
-    # overwriting cat0 ?????
-    return cat0
-
-
-
-# .oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo..oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo
-
-#def calcSilhScore(path_proj,outfile_name,cat00,range_n_clusters,numPCA,distMeasure = "SilhScore",Xtype='fingerprints',stand=True):
-def calcSilhScore(X,cat00,range_n_clusters,distMeasure = "SilhScore",stand=True):
-
-    """
-
-
-    Parameters
-    ----------
-
     range_n_clusters : range type - 2 : Kmax clusters
-    numPCA : number of principal components to perform clustering on (if not on FPs)
-    Xtype : cluster directly on fingerprints or components of PCA. The default is 'fingerprints'.
-
 
     Returns
     -------
@@ -201,32 +129,17 @@ def calcSilhScore(X,cat00,range_n_clusters,distMeasure = "SilhScore",stand=True)
 
     """
 
-## Return avg silh scores, avg SSEs, and Kopt for 2:Kmax clusters
-## Returns altered cat00 dataframe with cluster labels and SS scores,
-## Returns NEW catall dataframe with highest SS scores
-
-
-
-## alt. X = 'PCA'
-
-    # if X == 'fingerprints':
-    #     X = linearizeFP(path_proj,outfile_name,cat00)
-    #     pca_df = cat00
-    # elif X == 'PCA':
-    #     __, pca_df, X = PCAonFP(path_proj,outfile_name,cat00,numPCA=numPCA,stand=stand);
-
-    pca_df = cat00
+    ## Return avg silh scores, avg SSEs, and Kopt for 2:Kmax clusters
+    ## Returns altered cat00 dataframe with cluster labels and SS scores,
 
     maxSilScore = 0
-
+    distMeasure = "SilhScore"
     sse = []
     avgSils = []
     centers = []
 
     for n_clusters in range_n_clusters:
-
         print(f"kmeans on {n_clusters} clusters...")
-
         kmeans = KMeans(n_clusters=n_clusters,
                            max_iter = 500,
                            init='k-means++', #how to choose init. centroid
@@ -235,7 +148,6 @@ def calcSilhScore(X,cat00,range_n_clusters,distMeasure = "SilhScore",stand=True)
 
         #get cluster labels
         cluster_labels_0 = kmeans.fit_predict(X)
-
         #increment labels by one to match John's old kmeans code
         cluster_labels = [int(ccl)+1 for ccl in cluster_labels_0]
 
@@ -243,16 +155,12 @@ def calcSilhScore(X,cat00,range_n_clusters,distMeasure = "SilhScore",stand=True)
         sqr_dist = kmeans.transform(X)**2 #transform X to cluster-distance space.
         sum_sqr_dist = sqr_dist.sum(axis=1)
         euc_dist = np.sqrt(sum_sqr_dist)
-
         #save centroids
         centers.append(kmeans.cluster_centers_ )
-
         #kmeans loss function
         sse.append(kmeans.inertia_)
-
         # Compute the silhouette scores for each sample
         sample_silhouette_values = silhouette_samples(X, cluster_labels)
-
         #%  Silhouette avg
         avgSil = np.mean(sample_silhouette_values)
         avgSils.append(avgSil)
@@ -263,132 +171,115 @@ def calcSilhScore(X,cat00,range_n_clusters,distMeasure = "SilhScore",stand=True)
             euc_dist_best = euc_dist
             ss_best       = sample_silhouette_values
 
-
     print(f"Best cluster: {Kopt}")
-    pca_df['Cluster'] = cluster_labels_best
-    pca_df['SS'] = ss_best
-    pca_df['euc_dist'] = euc_dist_best
+    cat0[f'Cluster_NC{Kopt}'] = cluster_labels_best
+    cat0[f'SS_NC{Kopt}'] = ss_best
+    cat0[f'euc_dist_NC{Kopt}'] = euc_dist_best
 
+    norm = mpl.colors.Normalize(vmin=1, vmax=Kopt, clip=True)
+    mapper = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Dark2)
+    cat0[f'plot_color_NC{Kopt}'] = cat0[f'Cluster_NC{Kopt}'].apply(lambda x: mapper.to_rgba(x))
 
+    catall_euc,catall_ss = getTopF_labels(Kopt,cat0,topF=topF)
+    return cat0,catall_euc,catall_ss,Kopt, maxSilScore, avgSils,centers,sse
+
+def getTopF_labels(Kopt,cat0,topF=1):
     ## make df for  top SS score rep events
-
-    catall = pd.DataFrame();
+    catall_ss = pd.DataFrame();
+    catall_euc = pd.DataFrame();
 
     for k in range(1,Kopt+1):
+        tmp_top0 = cat0.where(cat0[f'Cluster_NC{Kopt}']==k).dropna();
+        tmp_top0_ss = tmp_top0.sort_values(by=f'SS_NC{Kopt}',ascending=False)
+        tmp_top0_ss = tmp_top0_ss[0:topF]
+        catall_ss = catall_ss.append(tmp_top0_ss);
 
-        pca_df_top00 = pca_df.where(pca_df.Cluster==k).dropna();
+        tmp_top0_eu = tmp_top0.sort_values(by=f'euc_dist_NC{Kopt}',ascending=False)
+        tmp_top0_eu = tmp_top0_eu[0:topF]
+        catall_euc = catall_euc.append(tmp_top0_eu);
+    return catall_euc,catall_ss
 
-        pca_df_top0 = getTopFCat(pca_df_top00,topF=1,startInd=0,distMeasure = distMeasure);
+def plot_silloute_scores_kmeans(sample_silhouette_values,cluster_labels,n_clust,path_cluster_plot_save):
+    # Compute the silhouette scores for each sample
+    y_lower = 10
+    plt.ioff()
+    plt.figure(figsize=(20,10))
+    for i in range(1,n_clust+1):
+        # Aggregate the silhouette scores for samples belonging to
+        # cluster i, and sort them
+        ith_cluster_silhouette_values = sample_silhouette_values[np.where(np.array(cluster_labels) == i)[0]]
+        ith_cluster_silhouette_values.sort()
+        size_cluster_i = ith_cluster_silhouette_values.shape[0]
+        y_upper = y_lower + size_cluster_i
+        #print(y_upper,y_lower,ith_cluster_silhouette_values)
+        color = plt.cm.nipy_spectral(float(i) / n_clust)
+        plt.fill_betweenx(
+                np.arange(y_lower, y_upper),
+                0,
+                ith_cluster_silhouette_values,
+                facecolor=color,
+                edgecolor=color,
+                alpha=0.7,
+            )
 
+        # Label the silhouette plots with their cluster numbers at the middle
+        ax1 = plt.gca()
+        ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+        # Compute the new y_lower for next plot
+        y_lower = y_upper + 1  # 10 for the 0 samples
 
-        catall = catall.append(pca_df_top0);
+    ax1.set_title("The silhouette plot for the various clusters.")
+    ax1.set_xlabel("The silhouette coefficient values")
+    ax1.set_ylabel("Cluster label")
+    plt.savefig(path_cluster_plot_save)
+    plt.close()
+    plt.ion()
 
+def get_representative_waveforms_kmeans(cluster_name,col_name,
+                                        norm_waveforms,
+                                        n_clust,df_merged_sub,best_rep,
+                                        index_list,save_path,
+                                        num_events=20,
+                                        start_clust=1):
+    plt.ioff()
+    plt.figure(10,figsize=(20,10))
+    my_yticks = []
+    exp_count = df_merged_sub.groupby(cluster_name)[cluster_name].count()
+    exp_indx = exp_count.index.values
+    exp_num  = exp_count.values
+    wave_length = norm_waveforms[0].shape[0]
+    font = {'family': 'serif',
+        'color':  'black',
+        'weight': 'normal',
+        'size': 20,
+        }
+    #print(exp_count)
+    for count in range(start_clust,n_clust+1):
+        tmp = df_merged_sub.loc[df_merged_sub[cluster_name]==count,['ev_ID',col_name]]
+        tmp_Primary = best_rep.loc[best_rep[cluster_name]==count,['ev_ID',col_name]]
+        #print(tmp.values,count)
+        num_ev_ac = np.min([num_events,tmp.index.shape[0]])
+        tmp2 = np.random.choice(tmp.ev_ID.values,num_ev_ac-1,replace=False)
+        tmp2 = np.hstack([tmp_Primary.ev_ID.values,tmp2])
+        num_events_in_this = exp_num[exp_indx==count]
+        my_yticks.append('Cluster '+str(count))
 
-    ### This is breaking the code for me because my catalog has years, months etc but no datetime.
-    ### Need to standardise...
+        if len(num_events_in_this) >0 :
+            plt.text(wave_length*0.7, count*2+0.2, f'% of Waveforms : {round(100*num_events_in_this[0]/exp_num.sum(),2)}', fontdict=font)
+        else :
+            plt.text(wave_length*0.7, count*2+0.2, f'% of Waveforms : 0', fontdict=font)
+        for k in range(0,num_ev_ac):
+            indx_use = np.where(np.array(index_list) == tmp2[k])[0]
+            x = norm_waveforms[indx_use]
+            #print(num_ev_ac,tmp2[k])
+            if k == 0:
+                plt.plot(x.flatten() + count + count,alpha=.2,label='Cluster : '+str(count),color=tmp[col_name].values[0])
+            else :
+                plt.plot(x.flatten() + count + count,alpha=0.05,label='',color=tmp[col_name].values[0])
 
-    # catall['datetime_index'] = [pd.to_datetime(d) for d in catall.datetime];
-    # catall.sort_values(by='datetime_index');
-
-
-
-    return pca_df,catall, Kopt, maxSilScore, avgSils, sse,cluster_labels_best,ss_best,euc_dist_best
-
-
-
-# .oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo..oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo
-
-
-
-
-##################################################################################################
-# .oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.OTHERoOo.oOo.oOo.oOo.oOo.oOo.oOo..oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo
-##################################################################################################
-############ OTHER
-############ OTHER
-############ OTHER
-############ OTHER
-
-# Mean Absolute Error
-
-def CalcScaleMAE(path_proj,cat00,Kopt,scale_range,RMM,sel_state,station,normed='median'):
-
-
-    R2_all = []
-    mae_Cbest= 1e12 #best of all clusters
-    sca_Cbest = 1
-    for k in range(1,Kopt+1):
-#     for k in [2]:
-
-        print(k)
-        mae_min = 1e12 #best within a cluster
-        sca_keep = 1
-
-
-        if normed=='median':
-            specMatsum_med_orig=getSpectraMedian(path_proj,cat00,k,station,normed=True)
-
-
-        rec_state = RMM[:,sel_state[k-1]]
-
-        if normed == 'max':
-            specMatsum_med_orig=getSpectraMedian(path_proj,cat00,k,station,normed=True)
-            specMatsum_med_orig = specMatsum_med_orig / np.max(specMatsum_med_orig)
-            rec_state = rec_state / np.max(rec_state)
-
-        for i, sca in enumerate(scale_range):
-
-            specMatsum_med = specMatsum_med_orig * sca
-
-
-#             mae_temp = r2_score(specMatsum_med, rec_state)
-            mae_temp = sklearn.metrics.mean_absolute_error(specMatsum_med, rec_state)
-
-
-            if mae_temp < mae_min:
-
-                mae_min = mae_temp
-                sca_keep = sca
-
-        if mae_min < mae_Cbest:
-
-            kmax = k
-            mae_Cbest = mae_min
-            sca_Cbest = sca_keep
-
-            print(k, ': ', mae_Cbest, sca_Cbest)
-
-        R2_k=r2_score(specMatsum_med, rec_state)
-
-        R2_all.append(R2_k)
-
-    return mae_Cbest,sca_Cbest, R2_all, kmax
-
-
-
-
-
-
-##################################################################################################
-# .oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo..oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo
-##################################################################################################
-
-
-
-def CalcDiffPeak(path_proj,cat00,k,RMM,sel_state,station):
-
-
-    specMatsum=getSpectraMedian(path_proj,cat00,k,station,normed=True)
-    rec_state = RMM[:,sel_state[k-1]]
-
-
-
-    maxIDR = np.argwhere(rec_state==np.max(rec_state))
-    maxIDS = np.argwhere(specMatsum==np.max(specMatsum))
-
-    peak_rec_state = rec_state[maxIDR]
-    peak_spec      = specMatsum[maxIDS]
-
-    scale = peak_rec_state - peak_spec
-
-    return int(peak_rec_state), int(peak_spec), int(scale)
+    plt.xlabel('Waveform Time')
+    plt.xlim(left=0,right=wave_length)
+    plt.yticks(np.arange(start_clust*2,n_clust*2+1,2), my_yticks)
+    plt.savefig(save_path)
+    plt.close()
+    plt.ion()

@@ -51,9 +51,8 @@ fmin, fmax = sgram_config["fmin"], sgram_config["fmax"]
 dataH5_name = f'data_{key}.h5'
 projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
+os.system(f' cp {args.config_filename} {projectPath}/')
 
-dataH5_name =  os.path.join('data_', path_config["h5name"])
-dataH5_path = os.path.join(projectPath, 'H5files/', dataH5_name)
 SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"]
 SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
 pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
@@ -160,5 +159,3 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     specuattr = _overwrite_group_if_exists(fileLoad, "specufex_attrs")
     for attr in specparams.keys():
         specuattr.attrs[attr] = specparams[attr]
-
-

@@ -46,8 +46,22 @@ Finally, the following will run specufex on the spectrograms and calculate finge
 
 The output will be saved to the directory specified in your config file.
 
+
+Next, calculate the pairwise distance matrices
+
+``` bash
+>>> 4_DistanceCalc.py example_config.yaml
+```
+
+The output will be saved to the directory specified in your config file.
+
+
 ```
 |--results_directory
+   |-- distance_matrices
+     |-- fingerprint
+     |-- waveform
+     |-- spectrum
    |-- H5files
        |-- data_projname.h5
        |-- SpecUFEx_projname.h5

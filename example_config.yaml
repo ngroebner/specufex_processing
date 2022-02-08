@@ -1,17 +1,17 @@
 ---
 # Paths
 paths:
-      key: "key" # for filenames mainly now.
-      projectPath: "project/path/" # path to the main project directory
-      pathCat: "cat/path/wf_cat.csv" # path to where the catalog resides, including the file name
-      pathWF: "WF/path/" # path to directory where the waveform files are
-      h5name: 'filename.h5' # if we want it to be different from the key !
+      key: "test1" # for filenames mainly now..
+      projectPath: "test1/results/" # path to the main project directory
+      pathCat: "test1/cat.csv" # path to where the catalog resides, including the file name
+      pathWF: "test1/data/" # path to where the waveform files are
+      h5name: 'test1.h5' # if we want it to be different from the key !
 
 # Raw data parameters
 dataParams:
       network: 'N' # SEED format for network, station, channel
-      station: 'N'
-      channel: 'N'
+      station: 'S'
+      channel: 'C'
       channel_ID: 0 # the index number for an obspy stream object
       sampling_rate: 100 #Hz
       filetype: '.mseed' #.SAC .txt
@@ -23,11 +23,12 @@ sgramParams:
       fmax: 20 # maximum frequency in the spectrogram
       winLen_Sec: 1 # window length in seconds
       fracOverlap: 0.25 # window overlap fraction
-      nfft: 2000  # padding # isnt this supposed to be a power of 2 ?
+      nfft: 2048  # padding # isnt this supposed to be a power of 2 ?
       norm_waveforms: True
 
 #sgramType: "scalogram" # if you are using wavelets
 # other wavelet-specific parameters
+## Note that spec sampling is int(winLen_Sec*sampling_rate)
 
 # SpecUFEx parameters
 specufexParams:
@@ -38,15 +39,37 @@ specufexParams:
       hmm_batchsz: 1 #batch size for hmm fit
       hmm_nbatch: 1 # number of batches
 
+# Distance Matrix Calculations - waveforms,
+distanceParams :
+  frac_shift_allowed : 0.1 # max 10% shift of the total waveform length for cross_correlation
+  distance_waveforms : True # Calculate waveform distance matrices
+  distance_nonNorm : True  # Calculate the distances without normalization also
+  waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before distance calculations or not - Other choices are MinMaxScaler,RobustScaler,StandardScaler
+  distance_spectra : True         # Distance matrix between individual spectra
+  distance_spectra_nonNorm : True  # Calculate the distances without normalization also
+  distance_fingerprint : True  # Distances between fingerprints
+  overwrite_distance : True    # Overwrite existing distance matrices if they exist
+  multiprocessing : True       # Use multiprocessing or not
+  n_cores         : 12         # Number of cores to use
+  make_dist_plots : True
+  do_clustering_dist : True    # Make dendrograms with the distance matrices and save the catalogs
+  clustering_measure : 'ward'  # Other common choices for agglomerative clustering are   (['average','centroid','median','ward'])
+  K_vals: [3,4,5]              # Number of clusters to choose for the catalogs
+  num_repr : 5                 # Number to plot for waveform plots (how many reprensentive waveforms per cluster)
+
 # Clustering parameters
 clusteringParams: # toggles are 0=off, 1=on
-      numPCA: 3
-      runSilhouette: 'False'
-      toggleFprints: 1
-      toggleSpectra: 0
-      togglePCs: 0
-      K_vals: [2,3,4,5,6]
-      K_save: 'K_opt' # or [5] a list of ints from K_vals ?
-
-
+      normalization : None # Normalize the fingerprints or not (StandardScaler, MixMax,RobustScaler)
+      numPCA: 3       # Number of PCAs for the Clustering and visualization
+      cum_pve_thresh : 0.8 # Percentage of variance explained
+      use_PCA : False
+      use_PCA_method : 'var' # Or 'num' for a number of PCA components
+      runSilhouette: 'False' # Find the optimal value of K means clustering
+      topF : 1 # Top clustering labels to use (how many reprensentive waveforms per cluster)
+      num_repr : 5 # Number to plot for waveform plots (how many reprensentive waveforms per cluster)
+      Kmax: 5 # max number of K means clusters (for runSilhouette)
+      K_vals: [2,3,4,5]  ## If not using runSilhouette
+      make_plots  : True
+      make_repr_wave : True
+      waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before plotting - Other choices are MinMaxScaler,RobustScaler,StandardScaler
 ... # three dots ends the yaml file

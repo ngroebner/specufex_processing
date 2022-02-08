@@ -23,6 +23,7 @@ def test_makeWaveforms():
         "config_test1.yml"
     ])
 
+
     # get the hash values of the correct output files
     trueh5hash = gethash('test1/results/H5files/data_test1_true.h5')
     truewfhash = gethash('test1/results/wf_cat_out_true.csv')
@@ -30,6 +31,12 @@ def test_makeWaveforms():
     # get the hash values of the output from the test
     h5hash = gethash('test1/results/H5files/data_test1.h5')
     wfhash = gethash('test1/results/wf_cat_out.csv')
+
+    subprocess.run([
+        "python",
+        "../scripts/calculate_energy.py",
+        "config_test1.yml"
+    ])
 
     # this doesn't work - hdf5 must not save the same data,
     # maybe some date stamp or something
@@ -43,7 +50,7 @@ def test_convertToSpectrograms():
     # run the script
     ret = subprocess.run([
         "python",
-        "../scrfipts/2_convertToSpectrograms.py",
+        "../scripts/2_convertToSpectrograms.py",
         "config_test1.yml"
     ])
 
@@ -65,3 +72,35 @@ def test_runSpecufex():
 
     assert ret.returncode == 0
 
+def test_rundistance():
+    """Test 4_DistanceCalc.py
+    Only tests successful execution, not output.
+    """
+    ret = subprocess.run([
+        "python",
+        "../scripts/4_DistanceCalc.py",
+        "config_test1.yml"
+    ])
+
+    assert ret.returncode == 0
+
+    # clean up matrices
+    subprocess.run(["rm", "-r", "results/distance_matrices/*"])
+    subprocess.run(["rmdir", "results/distance_matrices/"])
+
+def test_cluster():
+    """Test run_kmeans.py
+    Only tests successful execution, not output.
+    """
+    ret = subprocess.run([
+        "python",
+        "../scripts/run_kmeans.py",
+        "config_test1.yml"
+    ])
+
+    assert ret.returncode == 0
+
+    # clean up plot files
+    subprocess.run(["rm", "results/clustering_Catalog/Kmeans/*"])
+    subprocess.run(["rmdir", "results/clustering_Catalog/Kmeans/"])
+    subprocess.run(["rmdir", "results/clustering_Catalog/"])
