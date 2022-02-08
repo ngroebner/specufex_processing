@@ -51,6 +51,7 @@ distanceParams :
   overwrite_distance : True    # Overwrite existing distance matrices if they exist
   multiprocessing : True       # Use multiprocessing or not
   n_cores         : 12         # Number of cores to use
+  make_dist_plots : True
 
 # Clustering parameters
 clusteringParams: # toggles are 0=off, 1=on

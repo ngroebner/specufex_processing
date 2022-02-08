@@ -70,7 +70,8 @@ if __name__ == "__main__":
             udst.calculate_distances_all(X,distance_params,prefix_name,
                                         distance_measure_name_list,
                                         distance_measure_name_list_val,
-                                        use_cross_corr=True)
+                                        use_cross_corr=True,
+                                        make_plots=distance_params['make_dist_plots'])
 
         wave_norm = distance_params['waveform_normalization']
         X_norm = normalize_waveform(X,norm_scale = wave_norm,save_plot=True,
@@ -79,7 +80,8 @@ if __name__ == "__main__":
         udst.calculate_distances_all(X_norm,distance_params,prefix_name,
                                     distance_measure_name_list,
                                     distance_measure_name_list_val,
-                                    use_cross_corr=True)
+                                    use_cross_corr=True,
+                                    make_plots=distance_params['make_dist_plots'])
         del X, X_norm
 
 
@@ -101,7 +103,8 @@ if __name__ == "__main__":
         udst.calculate_distances_all(X,distance_params,prefix_name,
                                     distance_measure_name_list,
                                     distance_measure_name_list_val,
-                                    use_cross_corr=True,use_2d=True)
+                                    use_cross_corr=True,use_2d=True,
+                                    make_plots=distance_params['make_dist_plots'])
         del X
 
         if distance_params['distance_spectra_nonNorm'] :
@@ -120,7 +123,8 @@ if __name__ == "__main__":
             udst.calculate_distances_all(X,distance_params,prefix_name,
                                         distance_measure_name_list,
                                         distance_measure_name_list_val,
-                                        use_cross_corr=True,use_2d=True)
+                                        use_cross_corr=True,use_2d=True,
+                                        make_plots=distance_params['make_dist_plots'])
             del X
 
     if distance_params['distance_fingerprint'] :
@@ -141,5 +145,6 @@ if __name__ == "__main__":
         udst.calculate_distances_all(X,distance_params,prefix_name,
                                     distance_measure_name_list,
                                     distance_measure_name_list_val,
-                                    use_cross_corr=True,use_2d=True)
+                                    use_cross_corr=True,use_2d=True,
+                                    make_plots=distance_params['make_dist_plots'])
         del X
