@@ -39,8 +39,11 @@ def load_wf(filename, lenData, channel_ID=None):
     channel_ID: int
         If the fileis an obspy stream, this is the desired channel.
     """
+    print(filename)
     if ".txt" in filename:
         data = np.loadtxt(filename)
+    elif ".npy" in filename:
+        data = np.load(filename)
     else: #catch loading errors
         st = obspy.read(filename)
         ### REMOVE RESPONSE ??

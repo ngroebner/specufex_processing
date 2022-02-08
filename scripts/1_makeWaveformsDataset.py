@@ -61,6 +61,10 @@ if data_config["filetype"] == '.txt':
     wf_test = np.loadtxt(wf_filelist[0])
     lenData = len(wf_test)
 
+elif ".npy" in wf_filelist[0]:
+    wf_test = np.load(wf_filelist[0])
+    lenData = len(wf_test)
+
 else:
     wf_test = obspy.read(wf_filelist[0])
     lenData = len(wf_test[0].data)
