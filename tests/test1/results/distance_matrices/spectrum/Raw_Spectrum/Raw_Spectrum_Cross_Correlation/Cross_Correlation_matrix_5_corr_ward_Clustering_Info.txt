@@ -1,8 +1,0 @@
-Cluster Names : [1 2 3 4 5]
-NC_5_corr_ward
-1    1
-2    1
-3    2
-4    2
-5    4
-Name: NC_5_corr_ward, dtype: int64

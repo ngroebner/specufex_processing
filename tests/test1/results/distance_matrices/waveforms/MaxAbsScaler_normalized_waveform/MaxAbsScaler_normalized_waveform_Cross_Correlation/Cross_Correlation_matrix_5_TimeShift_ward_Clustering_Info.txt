@@ -1,8 +1,0 @@
-Cluster Names : [1 2 3 4 5]
-NC_5_TimeShift_ward
-1    1
-2    1
-3    6
-4    1
-5    1
-Name: NC_5_TimeShift_ward, dtype: int64

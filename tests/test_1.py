@@ -84,6 +84,10 @@ def test_rundistance():
 
     assert ret.returncode == 0
 
+    # clean up matrices
+    subprocess.run(["rm", "-r", "results/distance_matrices/*"])
+    subprocess.run(["rmdir", "results/distance_matrices/"])
+
 def test_cluster():
     """Test run_kmeans.py
     Only tests successful execution, not output.
@@ -95,3 +99,8 @@ def test_cluster():
     ])
 
     assert ret.returncode == 0
+
+    # clean up plot files
+    subprocess.run(["rm", "results/clustering_Catalog/Kmeans/*"])
+    subprocess.run(["rmdir", "results/clustering_Catalog/Kmeans/"])
+    subprocess.run(["rmdir", "results/clustering_Catalog/"])
