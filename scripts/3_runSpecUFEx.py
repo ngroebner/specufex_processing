@@ -51,6 +51,7 @@ fmin, fmax = sgram_config["fmin"], sgram_config["fmax"]
 dataH5_name = f'data_{key}.h5'
 projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
+os.system(f' cp {args.config_filename} {projectPath}/')
 
 SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"]
 SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)

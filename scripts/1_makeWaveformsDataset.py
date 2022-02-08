@@ -44,6 +44,7 @@ projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
 dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
 wf_cat_out_path = os.path.join(projectPath, 'wf_cat_out.csv')
+os.system(f' cp {args.config_filename} {projectPath}/')
 
 if not os.path.isdir(os.path.join(projectPath, 'H5files/')):
     os.mkdir(os.path.join(projectPath, 'H5files/'))

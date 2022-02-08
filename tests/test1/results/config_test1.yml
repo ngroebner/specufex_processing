@@ -1,17 +1,17 @@
 ---
 # Paths
 paths:
-      key: "key" # for filenames mainly now.
-      projectPath: "project/path/" # path to the main project directory
-      pathCat: "cat/path/wf_cat.csv" # path to where the catalog resides, including the file name
-      pathWF: "WF/path/" # path to directory where the waveform files are
-      h5name: 'filename.h5' # if we want it to be different from the key !
+      key: "test1" # for filenames mainly now..
+      projectPath: "test1/results/" # path to the main project directory
+      pathCat: "test1/cat.csv" # path to where the catalog resides, including the file name
+      pathWF: "test1/data/" # path to where the waveform files are
+      h5name: 'test1.h5' # if we want it to be different from the key !
 
 # Raw data parameters
 dataParams:
       network: 'N' # SEED format for network, station, channel
-      station: 'N'
-      channel: 'N'
+      station: 'S'
+      channel: 'C'
       channel_ID: 0 # the index number for an obspy stream object
       sampling_rate: 100 #Hz
       filetype: '.mseed' #.SAC .txt

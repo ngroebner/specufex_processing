@@ -9,7 +9,6 @@ import yaml
 
 from specufex_processing.preprocessing import dataframe2hdf,normalize_waveform
 from specufex_processing.utils import _overwrite_group_if_exists
-from specufex_processing.distance import calc_corrmatrix,calc_distmatrix_Basic_Distances,corr_distance_1D
 from specufex_processing.distance import utils_distance as udst
 import pdb
 
@@ -35,7 +34,7 @@ if __name__ == "__main__":
     # build path strings
     dataH5_name = f'data_{key}.h5'
     projectPath = path_config["projectPath"]
-
+    os.system(f' cp {args.config_filename} {projectPath}/')
     dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
     SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"]
     SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)

@@ -39,6 +39,7 @@ if __name__ == "__main__":
     dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
     SpecUFEx_H5_name = 'SpecUFEx_' + config_path["h5name"]
     SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
+    os.system(f' cp {args.config_filename} {projectPath}/')
 
     station  = config_dataparams["station"]
     channel = config_dataparams["channel"]

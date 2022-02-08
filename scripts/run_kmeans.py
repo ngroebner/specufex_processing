@@ -10,10 +10,12 @@ import pandas as pd
 
 from importlib import reload
 from specufex_processing.clustering import functions_clustering as funclust
+from specufex_processing.preprocessing import normalize_waveform
 
 import yaml
 import argparse
 import os
+import matplotlib as mpl
 
 # command line argument instead of hard coding to config file
 parser = argparse.ArgumentParser()
@@ -24,10 +26,12 @@ with open(args.config_filename, 'r') as yamlfile:
     config = yaml.load(yamlfile, Loader=yaml.FullLoader)
 
 
+
 # pull out config values for conciseness
 path_config = config["paths"]
 projectPath = path_config["projectPath"]
 key = path_config["key"]
+os.system(f' cp {args.config_filename} {projectPath}/')
 
 data_config = config['dataParams']
 station = data_config["station"]
@@ -51,9 +55,27 @@ cat0 = pd.read_csv(sgram_catPath)
 path_cluster_base = os.path.join(config['paths']['projectPath'],"clustering_Catalog")
 os.makedirs(path_cluster_base,exist_ok=True)
 
+path_cluster_base = os.path.join(path_cluster_base,"Kmeans")
+os.makedirs(path_cluster_base,exist_ok=True)
+
 #### After linearizing FPs into data array X, you can then do Kmeans on X
 ## Optimal cluster is chosen by mean Silh scores, but euclidean distances are saved also
 X,evID_hdf5,orig_df = funclust.linearizeFP(SpecUFEx_H5_path,cat0)
+
+
+if clustering_params['make_repr_wave']:
+    print('Loading the waveforms ... ')
+    X_wave = []
+    with h5py.File(dataH5_path,'r') as fileLoad:
+        evID_waves = []
+        for evID in fileLoad[f'waveforms/{station}/{channel}']:
+            specMat = fileLoad[f'waveforms/{station}/{channel}'].get(evID)[:]
+            X_wave.append(specMat)
+            evID_waves.append(evID)
+
+        X_wave = np.array(X_wave)
+        wave_norm = clustering_params['waveform_normalization']
+        X_wave_norm = normalize_waveform(X_wave,norm_scale = wave_norm,save_plot=False)
 
 # ====================================================================
 # Do the PCA (in case of clustering on PCA but also for visualization)
@@ -85,8 +107,25 @@ if clustering_params['runSilhouette'] == 'True':
 
     # NOTE that i modified this so that you pass in X, be it fingerprints or PCA-- do that outside the function.
     df_use,catall_euc,catall_ss,Kopt, maxSilScore, avgSils,centers,sse = funclust.calcSilhScore(X_use,df_use,range_n_clusters,topF=clustering_params['topF'])
+
     catall_euc.to_csv(path_cluster_base+f"/Clustering_Kmeans_NC{Kopt}_Catalog_Sorted_By_Euc_Top{clustering_params['topF']}.csv")
     catall_ss.to_csv(path_cluster_base+f"/Clustering_Kmeans_NC{Kopt}_Catalog_Sorted_By_SS_Top{clustering_params['topF']}.csv")
+
+    if clustering_params['make_repr_wave']:
+        funclust.get_representative_waveforms_kmeans(f'Cluster_NC{Kopt}',f'plot_color_NC{Kopt}',
+                                                X_wave_norm,
+                                                Kopt,
+                                                df_use,catall_euc,
+                                                evID_waves,
+                                                path_cluster_base+f"/Clustering_Kmeans_NC{Kopt}_repr_wave.png",
+                                                num_events=clustering_params['topF']*10,
+                                                start_clust=1)
+
+    if clustering_params['make_plots']:
+        cluster_label = df_use[f'Cluster_NC{Kopt}'].values
+        funclust.plot_silloute_scores_kmeans(df_use[f'SS_NC{Kopt}'].values,
+                            cluster_label,Kopt,
+                            path_cluster_base+f"/Clustering_Kmeans_NC{Kopt}_silloute_scores.png")
 
 else :
     ## use the passed values of K_vals
@@ -94,6 +133,8 @@ else :
     centers = []
     for K_save in clustering_params['K_vals']:
         print(f"Running kmeans on {K_save} clusters, to save to catalog")
+        norm = mpl.colors.Normalize(vmin=1, vmax=K_save, clip=True)
+        mapper = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Dark2)
         kmeans = KMeans(n_clusters=K_save,
                            max_iter = 500,
                            init='k-means++', #how to choose init. centroid
@@ -115,9 +156,25 @@ else :
         df_use[f'Cluster_NC{K_save}'] = cluster_labels
         df_use[f'SS_NC{K_save}'] = sample_silhouette_values
         df_use[f'euc_dist_NC{K_save}'] = euc_dist
+        df_use[f'plot_color_NC{K_save}'] =df_use[f'Cluster_NC{K_save}'].apply(lambda x: mapper.to_rgba(x))
         catall_euc,catall_ss = funclust.getTopF_labels(K_save,df_use,topF=clustering_params['topF'])
-        catall_euc.to_csv(path_cluster_base+f"/Clustering_Kmeans_NC{Kopt}_Catalog_Sorted_By_Euc_Top{clustering_params['topF']}.csv")
-        catall_ss.to_csv(path_cluster_base+f"/Clustering_Kmeans_NC{Kopt}_Catalog_Sorted_By_SS_Top{clustering_params['topF']}.csv")
+        catall_euc.to_csv(path_cluster_base+f"/Clustering_Kmeans_NC{K_save}_Catalog_Sorted_By_Euc_Top{clustering_params['topF']}.csv")
+        catall_ss.to_csv(path_cluster_base+f"/Clustering_Kmeans_NC{K_save}_Catalog_Sorted_By_SS_Top{clustering_params['topF']}.csv")
+        if clustering_params['make_repr_wave']:
+            funclust.get_representative_waveforms_kmeans(f'Cluster_NC{K_save}',f'plot_color_NC{K_save}',
+                                                    X_wave_norm,
+                                                    K_save,
+                                                    df_use,catall_euc,
+                                                    evID_waves,
+                                                    path_cluster_base+f"/Clustering_Kmeans_NC{K_save}_repr_wave.png",
+                                                    num_events=clustering_params['topF']*10,
+                                                    start_clust=1)
+        if clustering_params['make_plots']:
+            cluster_label = df_use[f'Cluster_NC{K_save}'].values
+            funclust.plot_silloute_scores_kmeans(sample_silhouette_values,
+                                    cluster_label,K_save,
+                                    path_cluster_base+f"/Clustering_Kmeans_NC{K_save}_silloute_scores.png")
+
 
 df_use.to_csv(path_cluster_base+'/Clustering_Kmeans_Catalog.csv')
 
@@ -126,7 +183,6 @@ with open(path_cluster_base+'/Clustering_Kmeans_Catalog_Info.txt', 'w') as f:
     sys.stdout = f # Change the standard output to the file we created.
     print('Parameters of the clustering Algorithm')
     print(clustering_params)
-    print(f'Cluster Number {range_n_clusters}')
     print('kmeans loss function : ')
     print(sse)
     print('kmeans centroids : ')

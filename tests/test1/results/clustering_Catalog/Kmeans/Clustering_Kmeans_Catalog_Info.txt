@@ -1,7 +1,8 @@
 Parameters of the clustering Algorithm
 {'normalization': 'None', 'numPCA': 3, 'cum_pve_thresh': 0.8, 'use_PCA': False, 'use_PCA_method': 'var', 'runSilhouette': 'False', 'topF': 1, 'Kmax': 5, 'K_vals': [2, 3, 4, 5], 'make_plots': True, 'make_repr_wave': True, 'waveform_normalization': 'MaxAbsScaler'}
+Cluster Number range(2, 6)
 kmeans loss function : 
-[0.07486536674309982, 0.0290275727298354, 0.012053731555143155, 0.005436865011338255]
+[0.0748653667430998, 0.0290275727298354, 0.012053731555143157, 0.005436865011338255]
 kmeans centroids : 
 [array([[  2.19285119e-18,   2.19285119e-18,   2.19285119e-18,
           2.19285119e-18,   2.19285119e-18,   2.19285119e-18,
