@@ -36,7 +36,7 @@ class SpectrogramMaker:
         """
         if normalize == None :
             normalize = self.norm_waveforms
-            print(f'Using {self.norm_waveforms} for normalization')
+            #print(f'Using {self.norm_waveforms} for normalization')
         ##### Normalize each waveform #####
         if normalize:
             waveform = waveform / np.abs(waveform).max()
