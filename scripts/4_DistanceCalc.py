@@ -83,112 +83,63 @@ if __name__ == "__main__":
         del X, X_norm
 
 
+    if distance_params['distance_spectra'] :
+        print('Loading the spectra ... ')
+        path_dist_matrix_spec = os.path.join(path_dist_matrix_base,"spectrum")
+        os.makedirs(path_dist_matrix_spec,exist_ok=True)
 
-
-
-    with h5py.File(dataH5_path,'a') as fileLoad:
-        for evID in fileLoad['spectrograms/transformed_spectrograms']:
-            specMat = fileLoad['spectrograms/transformed_spectrograms'].get(evID)[:]
-            X.append(specMat)
-
+        X = []
+        with h5py.File(SpecUFEx_H5_path,'r') as fileLoad:
+            for evID in fileLoad['spectrograms/transformed_spectrograms']:
+                specMat = fileLoad['spectrograms/transformed_spectrograms'].get(evID)[:]
+                X.append(specMat)
         X = np.array(X)
+        waveform_size = X.shape[2]
+        distance_params['shift_allowed'] = int(waveform_size*0.5)
 
-    # ============================================================
-    # Running SpecUFEx
-    # ============================================================
+        prefix_name = path_dist_matrix_spec+'/normalized_Spectrum'
+        udst.calculate_distances_all(X,distance_params,prefix_name,
+                                    distance_measure_name_list,
+                                    distance_measure_name_list_val,
+                                    use_cross_corr=True,use_2d=True)
+        del X
 
+        if distance_params['distance_spectra_nonNorm'] :
+            os.makedirs(path_dist_matrix_spec,exist_ok=True)
 
+            X = []
+            with h5py.File(SpecUFEx_H5_path,'r') as fileLoad:
+                for evID in fileLoad['spectrograms/raw_spectrograms']:
+                    specMat = fileLoad['spectrograms/raw_spectrograms'].get(evID)[:]
+                    X.append(specMat)
+            X = np.array(X)
+            waveform_size = X.shape[2]
+            distance_params['shift_allowed'] = int(waveform_size*0.5)
 
-    distance_name = 'dist_matrix.npy'
-    spectrogram_H5_path = os.path.join(projectPath,"data","spectrograms",spectrogram_H5_name)
+            prefix_name = path_dist_matrix_spec+'/Raw_Spectrum'
+            udst.calculate_distances_all(X,distance_params,prefix_name,
+                                        distance_measure_name_list,
+                                        distance_measure_name_list_val,
+                                        use_cross_corr=True,use_2d=True)
+            del X
 
+    if distance_params['distance_fingerprint'] :
+        print('Loading the Fingerprints ... ')
+        path_dist_matrix_fing = os.path.join(path_dist_matrix_base,"fingerprint")
+        os.makedirs(path_dist_matrix_fing,exist_ok=True)
 
-    specparams = config["specufexParams"]
+        X = []
+        with h5py.File(SpecUFEx_H5_path,'r') as fileLoad:
+            for evID in fileLoad['fingerprints']:
+                specMat = fileLoad['fingerprints'].get(evID)[:]
+                X.append(specMat)
+        X = np.array(X)
+        waveform_size = X.shape[2]
+        distance_params['shift_allowed'] = int(waveform_size*0.5)
 
-    t_nmf0 = time.time()
-    print('Running NMF')
-    nmf = BayesianNonparametricNMF(X.shape)
-    for i in range(specparams["nmf_nbatch"]):
-        # pick random sample
-        print(f"Batch {i}")
-        sample = np.random.choice(
-            X.shape[0],
-            specparams["nmf_batchsz"],
-            replace=False
-        )
-        nmf.fit(X[sample], verbose=1)
-
-    print("Calculating ACMs.")
-
-    Vs = nmf.transform(X)
-    t_nmf1 = time.time()
-
-    print(f"NMF time: {t_nmf1-t_nmf0}")
-
-    # save the model using it's own machinery
-    print("Saving NMF model and data")
-    nmf.save(os.path.join(projectPath, 'H5files/', "nmf.h5"), overwrite=True)
-
-    # save model parameters and calculated ACMs to the specufex data
-    with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-        if "SpecUFEx_output" in fileLoad:
-            out_group = fileLoad["SpecUFEx_output"]
-        else:
-            out_group = fileLoad.create_group("SpecUFEx_output")
-        if "model_parameters" in fileLoad:
-            model_group = fileLoad["model_parameters"]
-        else:
-            model_group = fileLoad.create_group("model_parameters")
-
-        _overwrite_dataset_if_exists(out_group, name="ACM_gain", data=nmf.gain)
-        _overwrite_dataset_if_exists(model_group, name='EW',data=nmf.EW)
-        _overwrite_dataset_if_exists(model_group, name='EA',data=nmf.EA)
-        _overwrite_dataset_if_exists(model_group, name='ElnWA',data=nmf.ElnWA)
-        ACM_group = _overwrite_group_if_exists(fileLoad, "ACM")
-        for i, evID in enumerate(fileLoad['spectrograms/transformed_spectrograms']):
-            ACM_group.create_dataset(name=evID, data=Vs[i])
-
-    t_hmm0 = time.time()
-    print('Running HMM')
-    hmm = BayesianHMM(nmf.num_pat, nmf.gain)
-    for i in range(specparams["hmm_nbatch"]):
-        print(f"Batch {i}")
-
-        sample = np.random.choice(
-            Vs.shape[0],
-            specparams["nmf_batchsz"],
-            replace=False
-        )
-        hmm.fit(Vs[sample], verbose=1)
-
-    print("Calculating fingerprints")
-
-    fingerprints, As, gams = hmm.transform(Vs)
-    t_hmm1 = time.time()
-    print(f"HMM time: {t_hmm1-t_hmm0}")
-
-    print('Saving HMM model and data')
-    hmm.save(os.path.join(projectPath, 'H5files/', "hmm.h5"), overwrite=True)
-    with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-        fp_group = _overwrite_group_if_exists(fileLoad, "fingerprints")
-
-        # save fingerprints
-        for i, evID in enumerate(fileLoad['spectrograms/transformed_spectrograms']):
-            fp_group.create_dataset(name= evID, data=fingerprints[i])
-
-        # save the A and gam vectors
-        As_group = _overwrite_group_if_exists(fileLoad, "SpecUFEx_output/As")
-        STM_group = _overwrite_group_if_exists(fileLoad, "STM")
-
-        for i, evID in enumerate(fileLoad['fingerprints']):
-             As_group.create_dataset(name=evID,data=As[i])
-             STM_group.create_dataset(name=evID,data=gams[i])
-
-        _overwrite_dataset_if_exists(fileLoad, "model_parameters/EB", data=hmm.EB)
-        ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
-        #RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
-
-        # write specufex parameters to the file
-        specuattr = _overwrite_group_if_exists(fileLoad, "specufex_attrs")
-        for attr in specparams.keys():
-            specuattr.attrs[attr] = specparams[attr]
+        prefix_name = path_dist_matrix_spec+'/fingerprints'
+        udst.calculate_distances_all(X,distance_params,prefix_name,
+                                    distance_measure_name_list,
+                                    distance_measure_name_list_val,
+                                    use_cross_corr=True,use_2d=True)
+        del X

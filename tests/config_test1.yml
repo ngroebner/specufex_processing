@@ -28,6 +28,7 @@ sgramParams:
 
 #sgramType: "scalogram" # if you are using wavelets
 # other wavelet-specific parameters
+## Note that spec sampling is int(winLen_Sec*sampling_rate)
 
 # SpecUFEx parameters
 specufexParams:
@@ -45,7 +46,7 @@ distanceParams :
   distance_nonNorm : True  # Calculate the distances without normalization also
   waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before distance calculations or not - Other choices are MinMaxScaler,RobustScaler,StandardScaler
   distance_spectra : True         # Distance matrix between individual spectra
-  spectra_use : 'raw_spectrograms' # Use raw_spectrograms or transformed_spectrograms for the distance calculations
+  distance_spectra_nonNorm : True  # Calculate the distances without normalization also
   distance_fingerprint : True  # Distances between fingerprints
   overwrite_distance : False    # Overwrite existing distance matrices if they exist
   multiprocessing : True       # Use multiprocessing or not
