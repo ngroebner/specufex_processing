@@ -8,20 +8,10 @@ from sklearn.metrics import silhouette_samples
 from sklearn.cluster import KMeans
 import pandas as pd
 
-sys.path.append('./functions/')
 from importlib import reload
-import functions_clustering as funclust
-reload(funclust)
+from specufex_processing.clustering import functions_clustering as funclust
 
-# import tables
-# tables.file._open_files.close_all()
-
-# read in the paths:
-# this will be replaced with the path to the config file.
-# sys.path.append('../../specufex_preprocessing/functions/')
-# from setParams import setParams
 import yaml
-
 import argparse
 
 # command line argument instead of hard coding to config file

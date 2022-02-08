@@ -48,7 +48,7 @@ distanceParams :
   distance_spectra : True         # Distance matrix between individual spectra
   distance_spectra_nonNorm : True  # Calculate the distances without normalization also
   distance_fingerprint : True  # Distances between fingerprints
-  overwrite_distance : False    # Overwrite existing distance matrices if they exist
+  overwrite_distance : True    # Overwrite existing distance matrices if they exist
   multiprocessing : True       # Use multiprocessing or not
   n_cores         : 12         # Number of cores to use
 

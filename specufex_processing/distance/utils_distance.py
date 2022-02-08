@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.signal import resample, fftconvolve
@@ -14,9 +15,11 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 
 import gc
+import seaborn as sns
 
 # import warnings
 # warnings.filterwarnings("ignore")
+
 
 # need to norm the correlations by (x^2*y^2)^0.5 like in obspy code
 def corr_distance_1D(index_pair,matrix,num_shift_max,timeshifts):
@@ -178,10 +181,11 @@ def calc_distmatrix_Basic_Distances(matrix,metric,use_multi=True,num_cores=12,us
 def calculate_distances_all(X,distance_params,prefix_name,
                             distance_measure_name_list,
                             distance_measure_name_list_val,
-                            use_cross_corr=True,use_2d=False):
+                            use_cross_corr=True,use_2d=False,make_plots=True):
     '''
     Calculate a distance matrix from the input waveform grid
     '''
+    plt.ioff()
     ########### Calculate the cross_correlation distance measures
     if use_cross_corr :
         distance_measure_name = '_Cross_Correlation'
@@ -200,6 +204,22 @@ def calculate_distances_all(X,distance_params,prefix_name,
             np.save(prefix_name+distance_measure_name+"_matrix.npy", A)
             np.save(prefix_name+distance_measure_name+"_matrix_TimeShift.npy", A_time)
             np.save(prefix_name+distance_measure_name+"_matrix_Summed.npy", A_summed)
+            if make_plots:
+                plt.figure(figsize=(20,10))
+                sns.heatmap(A,center=np.median(A), cmap="vlag")
+                plt.title(f'{distance_measure_name} Matrix')
+                plt.savefig(prefix_name+distance_measure_name+"_matrix_Plot.png")
+                plt.close()
+                plt.figure(figsize=(20,10))
+                sns.heatmap(A_time,center=np.median(A_time), cmap="vlag")
+                plt.title(f'{distance_measure_name} Lag Time')
+                plt.savefig(prefix_name+distance_measure_name+"_matrix_TimeShift_Plot.png")
+                plt.close()
+                plt.figure(figsize=(20,10))
+                sns.heatmap(A_summed,center=np.median(A_summed), cmap="vlag")
+                plt.title(f'{distance_measure_name} Summed')
+                plt.savefig(prefix_name+distance_measure_name+"_matrix_Summed_Plot.png")
+                plt.close()
             del A, A_time,A_summed
         else :
             print(f'Distance matrix for {distance_measure_name} {prefix_name} exists')
@@ -213,8 +233,15 @@ def calculate_distances_all(X,distance_params,prefix_name,
             A_L1 = calc_distmatrix_Basic_Distances(X,val,use_multi=distance_params['multiprocessing'],
                                                                num_cores=distance_params['n_cores'],use_2d = use_2d)
             np.save(prefix_name+distance_measure_name+"_matrix.npy", A_L1)
+            if make_plots:
+                plt.figure(figsize=(20,10))
+                sns.heatmap(A_L1,center=np.median(A_L1), cmap="vlag")
+                plt.title(f'{distance_measure_name}')
+                plt.savefig(prefix_name+distance_measure_name+"_matrix_Plot.png")
+                plt.close()
             del A_L1
         else :
             print(f'Distance matrix for {distance_measure_name} {prefix_name} exists')
 
+    plt.ion()
     print("Done Calculations")
