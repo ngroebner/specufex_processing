@@ -51,9 +51,8 @@ fmin, fmax = sgram_config["fmin"], sgram_config["fmax"]
 dataH5_name = f'data_{key}.h5'
 projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
+os.system(f' cp {args.config_filename} {projectPath}/')
 
-dataH5_name =  os.path.join('data_', path_config["h5name"])
-dataH5_path = os.path.join(projectPath, 'H5files/', dataH5_name)
 SpecUFEx_H5_name = 'SpecUFEx_' + path_config["h5name"]
 SpecUFEx_H5_path = os.path.join(projectPath, 'H5files/', SpecUFEx_H5_name)
 pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
@@ -61,9 +60,8 @@ pathWf_cat  = os.path.join(projectPath, 'wf_cat_out.csv')
 X = []
 
 with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
-    print(fileLoad.keys())
-    for evID in fileLoad['spectrograms']:
-        specMat = fileLoad['spectrograms'].get(evID)[:]
+    for evID in fileLoad['spectrograms/transformed_spectrograms']:
+        specMat = fileLoad['spectrograms/transformed_spectrograms'].get(evID)[:]
         X.append(specMat)
 
     X = np.array(X)
@@ -76,7 +74,7 @@ specparams = config["specufexParams"]
 
 t_nmf0 = time.time()
 print('Running NMF')
-nmf = BayesianNonparametricNMF(X.shape)
+nmf = BayesianNonparametricNMF(X.shape, num_pat=specparams["N_patterns_NMF"])
 for i in range(specparams["nmf_nbatch"]):
     # pick random sample
     print(f"Batch {i}")
@@ -114,12 +112,12 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     _overwrite_dataset_if_exists(model_group, name='EA',data=nmf.EA)
     _overwrite_dataset_if_exists(model_group, name='ElnWA',data=nmf.ElnWA)
     ACM_group = _overwrite_group_if_exists(fileLoad, "ACM")
-    for i, evID in enumerate(fileLoad['spectrograms']):
+    for i, evID in enumerate(fileLoad['spectrograms/transformed_spectrograms']):
         ACM_group.create_dataset(name=evID, data=Vs[i])
 
 t_hmm0 = time.time()
 print('Running HMM')
-hmm = BayesianHMM(nmf.num_pat, nmf.gain)
+hmm = BayesianHMM(nmf.num_pat, nmf.gain, num_state=specparams["N_states_HMM"])
 for i in range(specparams["hmm_nbatch"]):
     print(f"Batch {i}")
 
@@ -142,7 +140,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     fp_group = _overwrite_group_if_exists(fileLoad, "fingerprints")
 
     # save fingerprints
-    for i, evID in enumerate(fileLoad['spectrograms']):
+    for i, evID in enumerate(fileLoad['spectrograms/transformed_spectrograms']):
         fp_group.create_dataset(name= evID, data=fingerprints[i])
 
     # save the A and gam vectors
@@ -157,3 +155,7 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
     ## # # delete probably ! gain_group                   = fileLoad.create_group("SpecUFEX_output/gain")
     #RMM_group                    = fileLoad.create_group("SpecUFEX_output/RMM")
 
+    # write specufex parameters to the file
+    specuattr = _overwrite_group_if_exists(fileLoad, "specufex_attrs")
+    for attr in specparams.keys():
+        specuattr.attrs[attr] = specparams[attr]
