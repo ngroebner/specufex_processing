@@ -123,7 +123,7 @@ for i in range(specparams["hmm_nbatch"]):
 
     sample = np.random.choice(
         Vs.shape[0],
-        specparams["nmf_batchsz"],
+        specparams["hmm_batchsz"],
         replace=False
     )
     hmm.fit(Vs[sample], verbose=1)
