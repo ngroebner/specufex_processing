@@ -12,7 +12,7 @@ import os
 import time
 import sys
 
-import linmdtw
+#import linmdtw
 import matplotlib as mpl
 
 from tqdm import tqdm
