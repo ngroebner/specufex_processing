@@ -25,7 +25,7 @@ class SpectrogramMaker:
         self.fmax = fmax
         self.norm_waveforms=norm_waveforms
 
-        def __call__(self, waveform, normalize=None):
+    def __call__(self, waveform, normalize=None):
 
         """Converts a waveform into a transformed spectrogram
         Returns
