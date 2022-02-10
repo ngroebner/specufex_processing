@@ -1,30 +1,30 @@
 ---
 # Paths
 paths:
-      key: "test1" # for filenames mainly now..
-      projectPath: "test1/results/" # path to the main project directory
-      pathCat: "test1/cat.csv" # path to where the catalog resides, including the file name
-      pathWF: "test1/data/" # path to where the waveform files are
-      h5name: 'test1.h5' # if we want it to be different from the key !
+  key: "test1" # for filenames mainly now..
+  projectPath: "test1/results/" # path to the main project directory
+  pathCat: "test1/cat.csv" # path to where the catalog resides, including the file name
+  pathWF: "test1/data/" # path to where the waveform files are
+  h5name: 'test1.h5' # if we want it to be different from the key !
 
 # Raw data parameters
 dataParams:
-      network: 'N' # SEED format for network, station, channel
-      station: 'S'
-      channel: 'C'
-      channel_ID: 0 # the index number for an obspy stream object
-      sampling_rate: 100 #Hz
-      filetype: '.mseed' #.SAC .txt
+  network: 'N' # SEED format for network, station, channel
+  station: 'S'
+  channel: 'C'
+  channel_ID: 0 # the index number for an obspy stream object
+  sampling_rate: 100 #Hz
+  filetype: '.mseed' #.SAC .txt
 
 # Spectrogram parameters
 sgramParams:
-      sgramType: "spectrogram"
-      fmin: 8 # minimum frequency in the spectrogram
-      fmax: 20 # maximum frequency in the spectrogram
-      winLen_Sec: 1 # window length in seconds
-      fracOverlap: 0.25 # window overlap fraction
-      nfft: 2048  # padding # isnt this supposed to be a power of 2 ?
-      norm_waveforms: True
+  sgramType: "spectrogram"
+  fmin: 8 # minimum frequency in the spectrogram
+  fmax: 20 # maximum frequency in the spectrogram
+  winLen_Sec: 1 # window length in seconds
+  fracOverlap: 0.25 # window overlap fraction
+  nfft: 2048  # padding # isnt this supposed to be a power of 2 ?
+  norm_waveforms: True
 
 #sgramType: "scalogram" # if you are using wavelets
 # other wavelet-specific parameters
@@ -32,12 +32,13 @@ sgramParams:
 
 # SpecUFEx parameters
 specufexParams:
-      N_patterns_NMF: 75 # initiate NMF with this many N_patterns (max, then shrinks)
-      nmf_batchsz: 1 # batch size for nmf fit
-      nmf_nbatch: 1 # number of batches
-      N_states_HMM: 15 # number of states for HMM (fixed at this value)
-      hmm_batchsz: 1 #batch size for hmm fit
-      hmm_nbatch: 1 # number of batches
+  N_patterns_NMF: 75 # initiate NMF with this many N_patterns (max, then shrinks)
+  nmf_batchsz: 1 # batch size for nmf fit
+  nmf_nbatch: 1 # number of batches
+  N_states_HMM: 15 # number of states for HMM (fixed at this value)
+  hmm_batchsz: 1 #batch size for hmm fit
+  hmm_nbatch: 1 # number of batches
+  norm_waveforms: True
 
 # Distance Matrix Calculations - waveforms,
 distanceParams :
@@ -59,17 +60,16 @@ distanceParams :
 
 # Clustering parameters
 clusteringParams: # toggles are 0=off, 1=on
-      normalization : None # Normalize the fingerprints or not (StandardScaler, MixMax,RobustScaler)
-      numPCA: 3       # Number of PCAs for the Clustering and visualization
-      cum_pve_thresh : 0.8 # Percentage of variance explained
-      use_PCA : False
-      use_PCA_method : 'var' # Or 'num' for a number of PCA components
-      runSilhouette: 'False' # Find the optimal value of K means clustering
-      topF : 1 # Top clustering labels to use (how many reprensentive waveforms per cluster)
-      num_repr : 5 # Number to plot for waveform plots (how many reprensentive waveforms per cluster)
-      Kmax: 5 # max number of K means clusters (for runSilhouette)
-      K_vals: [2,3,4,5]  ## If not using runSilhouette
-      make_plots  : True
-      make_repr_wave : True
-      waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before plotting - Other choices are MinMaxScaler,RobustScaler,StandardScaler
-... # three dots ends the yaml file
+  normalization : None # Normalize the fingerprints or not (StandardScaler, MixMax,RobustScaler)
+  numPCA: 3       # Number of PCAs for the Clustering and visualization
+  cum_pve_thresh : 0.8 # Percentage of variance explained
+  use_PCA : False
+  use_PCA_method : 'var' # Or 'num' for a number of PCA components
+  runSilhouette: 'False' # Find the optimal value of K means clustering
+  topF : 1 # Top clustering labels to use (how many reprensentive waveforms per cluster)
+  num_repr : 5 # Number to plot for waveform plots (how many reprensentive waveforms per cluster)
+  Kmax: 5 # max number of K means clusters (for runSilhouette)
+  K_vals: [2,3,4,5]  ## If not using runSilhouette
+  make_plots  : True
+  make_repr_wave : True
+  waveform_normalization : 'MaxAbsScaler'  # Normalize waveforms before plotting - Other choices are MinMaxScaler,RobustScaler,StandardScaler
