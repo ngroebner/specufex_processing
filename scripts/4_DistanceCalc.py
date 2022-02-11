@@ -55,7 +55,9 @@ if __name__ == "__main__":
     cat0 = pd.read_csv(sgram_catPath)
     cat0['index_counter'] = cat0.index.values
     cat0['ev_ID'] = cat0['ev_ID'].astype(str)
-    cat0.index = cat0['ev_ID']
+    cat0.index = cat0['ev_ID'].values
+
+    print("First", cat0.head())
 
     distance_params = config['distanceParams']
     overwrite_distance = distance_params['overwrite_distance']
@@ -66,16 +68,33 @@ if __name__ == "__main__":
     cluster_measure = distance_params['clustering_measure']
     cluster_numK = distance_params['K_vals']
 
-    ### Load the waveforms ...
+    ### Load the waveforms, energy, and entropy ...
     X = []
+    energies = []
+    entropies = []
     with h5py.File(dataH5_path,'r') as fileLoad:
         evID_waves = []
         for evID in fileLoad[f'waveforms/{station}/{channel}']:
             specMat = fileLoad[f'waveforms/{station}/{channel}'].get(evID)[:]
             X.append(specMat)
+            energies.append(fileLoad[f"energy/{station}/{channel}"][evID][()])
+            entropies.append(fileLoad[f"entropy/{station}/{channel}"][evID][()])
             evID_waves.append(evID)
 
         X = np.array(X)
+
+        # add energy and entropy to cat0 by creating a separate dataframe
+        # and then joining on ev_ID
+        e_cat = pd.DataFrame(
+            {
+                "ev_ID": evID_waves,
+                "energy": np.stack(energies),
+                "energy": np.stack(entropies)
+            }
+        )
+        cat0 = pd.merge(cat0, e_cat, left_on="ev_ID", right_on="ev_ID", how="left")
+        cat0.index = cat0['ev_ID'].values
+        print("last", cat0.head())
 
     wave_norm = distance_params['waveform_normalization']
     X_norm = normalize_waveform(X,norm_scale = wave_norm,save_plot=False)
