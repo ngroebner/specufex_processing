@@ -1,6 +1,6 @@
 specufex_preprocessing/tests/test1/results/H5files/data_test1.h5
 specufex_preprocessing/tests/test1/results/H5files/SpecUFEx_test1.h5
-specufex_prerocessing/tests/test1/results
+specufex_prerocessing/tests/test1/results/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
