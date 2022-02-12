@@ -4,6 +4,7 @@
 import argparse
 import os
 
+import pandas as pd
 import h5py
 import yaml
 
@@ -42,11 +43,32 @@ with h5py.File(dataH5_path,'a') as h5file:
 
     evIDs = list(h5file["waveforms"][station][channel].keys())
 
+    energies = []
+    entropies = []
     print("Calculating energy and entropy of each waveform")
     for evID in evIDs:
         waveform = h5file["waveforms"][station][channel][evID]
         energy, entropy = waveform_energy(waveform, "abssquared")
         energy_channel_grp.create_dataset(name=evID, data=energy)
         entropy_channel_grp.create_dataset(name=evID, data=entropy)
+        energies.append(energy)
+        entropies.append(entropy)
 
-print(f"Done. Saved to {dataH5_path}")
+print(f"Saved to {dataH5_path}")
+
+# save to wf_cat.csv
+
+ecat = pd.DataFrame(
+    index=[int(x) for x in evIDs],
+    data={
+        "energy":energies,
+        "entropy":entropies
+    }
+)
+
+ecat = ecat.sort_index()
+wf_cat = pd.read_csv(config["paths"]["pathCat"])
+new_cat = pd.merge(wf_cat, ecat, left_index=True, right_index=True)
+new_cat.to_csv(config["paths"]["pathCat"], index=False)
+print(f"Saved to {config['paths']['pathCat']}")
+

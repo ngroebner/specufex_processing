@@ -146,3 +146,6 @@ cython_debug/
 tests/test1/results/H5files/hmm.h5
 tests/test1/results/H5files/nmf.h5
 tests/test1/results/H5files/SpecUFEx_test1.h5
+tests/test1/results/H5files/hmm.h5
+tests/test1/results/H5files/nmf.h5
+.gitignore
