@@ -122,7 +122,7 @@ if clustering_params['runSilhouette'] == 'True':
                                                 df_use,catall_euc,
                                                 evID_waves,
                                                 path_cluster_base+f"/Clustering_Kmeans_NC{Kopt}_repr_wave.png",
-                                                num_events=clustering_params['topF']*10,
+                                                num_events=clustering_params['topF'],
                                                 start_clust=1)
 
     if clustering_params['make_plots']:
@@ -171,7 +171,7 @@ else :
                                                     df_use,catall_euc,
                                                     evID_waves,
                                                     path_cluster_base+f"/Clustering_Kmeans_NC{K_save}_repr_wave.png",
-                                                    num_events=clustering_params['topF']*10,
+                                                    num_events=clustering_params['topF'],
                                                     start_clust=1)
         if clustering_params['make_plots']:
             cluster_label = df_use[f'Cluster_NC{K_save}'].values

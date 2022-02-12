@@ -261,6 +261,7 @@ def get_representative_waveforms_kmeans(cluster_name,col_name,
         num_ev_ac = np.min([num_events,tmp.index.shape[0]])
         tmp2 = np.random.choice(tmp.ev_ID.values,num_ev_ac-1,replace=False)
         tmp2 = np.hstack([tmp_Primary.ev_ID.values,tmp2])
+        tmp2 = tmp_Primary.ev_ID.values
         num_events_in_this = exp_num[exp_indx==count]
         my_yticks.append('Cluster '+str(count))
 
@@ -268,14 +269,14 @@ def get_representative_waveforms_kmeans(cluster_name,col_name,
             plt.text(wave_length*0.7, count*2+0.2, f'% of Waveforms : {round(100*num_events_in_this[0]/exp_num.sum(),2)}', fontdict=font)
         else :
             plt.text(wave_length*0.7, count*2+0.2, f'% of Waveforms : 0', fontdict=font)
-        for k in range(0,num_ev_ac):
+        for k in range(0,num_ev_ac-1):
             indx_use = np.where(np.array(index_list) == tmp2[k])[0]
             x = norm_waveforms[indx_use]
             #print(num_ev_ac,tmp2[k])
             if k == 0:
-                plt.plot(x.flatten() + count + count,alpha=.2,label='Cluster : '+str(count),color=tmp[col_name].values[0])
+                plt.plot(x.flatten() + count + count,alpha=.5,label='Cluster : '+str(count),color=tmp[col_name].values[0])
             else :
-                plt.plot(x.flatten() + count + count,alpha=0.05,label='',color=tmp[col_name].values[0])
+                plt.plot(x.flatten() + count + count,alpha=0.1,label='',color=tmp[col_name].values[0])
 
     plt.xlabel('Waveform Time')
     plt.xlim(left=0,right=wave_length)
