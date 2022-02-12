@@ -192,11 +192,13 @@ def getTopF_labels(Kopt,cat0,topF=1):
         tmp_top0 = cat0.where(cat0[f'Cluster_NC{Kopt}']==k).dropna();
         tmp_top0_ss = tmp_top0.sort_values(by=f'SS_NC{Kopt}',ascending=False)
         tmp_top0_ss = tmp_top0_ss[0:topF]
-        catall_ss = catall_ss.append(tmp_top0_ss);
+        #catall_ss = catall_ss.append(tmp_top0_ss);
+        catall_ss = pd.concat([catall_ss,tmp_top0_ss], axis=0)
 
         tmp_top0_eu = tmp_top0.sort_values(by=f'euc_dist_NC{Kopt}',ascending=False)
         tmp_top0_eu = tmp_top0_eu[0:topF]
-        catall_euc = catall_euc.append(tmp_top0_eu);
+        #catall_euc = catall_euc.append(tmp_top0_eu);
+        catall_euc = pd.concat([catall_euc, tmp_top0_eu], axis=0)
     return catall_euc,catall_ss
 
 def plot_silloute_scores_kmeans(sample_silhouette_values,cluster_labels,n_clust,path_cluster_plot_save):
