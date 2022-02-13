@@ -76,7 +76,8 @@ specparams = config["specufexParams"]
 t_nmf0 = time.time()
 print('Running NMF')
 nmf = BayesianNonparametricNMF(X.shape, num_pat=specparams["N_patterns_NMF"])
-for i in trange(specparams["nmf_nbatch"]):
+pbar = trange(specparams["nmf_nbatch"])
+for i in pbar:
     # pick random sample
     #print(f"Batch {i}")
     sample = np.random.choice(
@@ -85,7 +86,7 @@ for i in trange(specparams["nmf_nbatch"]):
         replace=False
     )
     nmf.fit(X[sample], verbose=0)
-    tqdm.write(len(nmf.A1))
+    pbar.set_postfix({"NMF patterns": len(nmf.A1[0])})
 
 print("Calculating ACMs.")
 
