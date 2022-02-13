@@ -14,7 +14,7 @@ import h5py
 import numpy as np
 import obspy
 import pandas as pd
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import yaml
 
 from specufex_processing.preprocessing import dataframe2hdf, load_wf
@@ -45,7 +45,7 @@ projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
 dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
 wf_cat_out_path = os.path.join(projectPath, 'wf_cat_out.csv')
-os.system(f' cp {args.config_filename} {projectPath}/')
+#os.system(f' cp {args.config_filename} {projectPath}/')
 
 if not os.path.isdir(os.path.join(projectPath, 'H5files/')):
     os.mkdir(os.path.join(projectPath, 'H5files/'))
@@ -56,7 +56,7 @@ cat['ev_ID'].astype(str,copy=False)
 # get list of waveforms and sort
 wf_filelist = [os.path.join(pathWF, x) for x in cat["filename"]]
 wf_filelist.sort()
-print(wf_filelist[0])
+#print(wf_filelist[0])
 
 if data_config["filetype"] == '.txt':
     wf_test = np.loadtxt(wf_filelist[0])
@@ -88,7 +88,8 @@ with h5py.File(dataH5_path,'a') as h5file:
     dupl_evID = 0 #duplicate event IDs?? not here, sister
 
     evID_keep = []
-    for n, ev in tqdm(cat.iterrows()):
+    for n in trange(len(cat)):
+        ev = cat.iloc[n]
         data = load_wf(os.path.join(pathWF, ev["filename"]), lenData, channel_ID)
         if data is not None:
             channel_group.create_dataset(name=str(ev["ev_ID"]), data=data)
@@ -99,7 +100,6 @@ with h5py.File(dataH5_path,'a') as h5file:
     processing_group = h5file.create_group(f"{station}/processing_info")
     processing_group.create_dataset(name= "sampling_rate_Hz", data=sampling_rate)#,dtype='S')
     processing_group.create_dataset(name= "lenData", data=lenData)#,dtype='S')
-    print("processing_group")
 
 print(dupl_evID, ' duplicate events found and avoided')
 print(n + 1 - dupl_evID, ' waveforms loaded')
