@@ -14,6 +14,7 @@ import h5py
 import numpy as np
 import obspy
 import pandas as pd
+from tqdm import tqdm
 import yaml
 
 from specufex_processing.preprocessing import dataframe2hdf, load_wf
@@ -87,9 +88,7 @@ with h5py.File(dataH5_path,'a') as h5file:
     dupl_evID = 0 #duplicate event IDs?? not here, sister
 
     evID_keep = []
-    for n, ev in cat.iterrows():
-        if n%500==0:
-            print(n, '/', len(cat))
+    for n, ev in tqdm(cat.iterrows()):
         data = load_wf(os.path.join(pathWF, ev["filename"]), lenData, channel_ID)
         if data is not None:
             channel_group.create_dataset(name=str(ev["ev_ID"]), data=data)
