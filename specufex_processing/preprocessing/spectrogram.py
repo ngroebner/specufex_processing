@@ -7,7 +7,7 @@ from specufex_processing.utils import (
     _overwrite_dataset_if_exists
 )
 
-# f
+np.seterr(all='raise')
 
 class SpectrogramMaker:
 
@@ -45,7 +45,10 @@ class SpectrogramMaker:
             STFT_0 = STFT_raw
         # convert
         normConstant = np.median(STFT_0)
-        STFT_dB = 20*np.log10(STFT_0/normConstant, where=STFT_0 != 0)  ##convert to dB
+        if normConstant != 0:
+            STFT_dB = 20*np.log10(STFT_0/normConstant, where=STFT_0 != 0)  ##convert to dB
+        else:
+            STFT_dB = 20*np.log10(STFT_0, where=STFT_0 !=0)
         STFT = np.maximum(0, STFT_dB)
 
         self.fSTFT = fSTFT
@@ -135,7 +138,11 @@ def create_spectrograms(
         for evID in fileLoad[f'waveforms/{station}/{channel}'].keys():
             waveform = fileLoad[f'waveforms/{station}/{channel}/{evID}'][:]
             STFT, STFT_0 = spectmaker(waveform)
-            if np.any(np.isnan(STFT)) or np.any(STFT)==np.inf or np.any(STFT)==-np.inf:
+            if np.any(np.isnan(STFT)) \
+                    or np.any(STFT)==np.inf \
+                    or np.any(STFT)==-np.inf \
+                    or STFT.sum()==0:
+
                 badevIDs.append(evID)
                 # if you get a bad one, fill with zeros
                 # this is to preserve ordering
