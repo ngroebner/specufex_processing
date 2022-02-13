@@ -6,7 +6,6 @@ example: Parkfield repeaters::
 @author: theresasawi
 """
 
-
 import argparse
 #import glob
 import os
@@ -45,13 +44,14 @@ projectPath = path_config["projectPath"]
 pathWF = path_config["pathWF"]
 dataH5_path = os.path.join(projectPath,'H5files/', dataH5_name)
 wf_cat_out_path = os.path.join(projectPath, 'wf_cat_out.csv')
+os.system(f' cp {args.config_filename} {projectPath}/')
 
 if not os.path.isdir(os.path.join(projectPath, 'H5files/')):
     os.mkdir(os.path.join(projectPath, 'H5files/'))
 
 # get global catalog
 cat = pd.read_csv(path_config["pathCat"])
-
+cat['ev_ID'].astype(str,copy=False)
 # get list of waveforms and sort
 wf_filelist = [os.path.join(pathWF, x) for x in cat["filename"]]
 wf_filelist.sort()
@@ -59,6 +59,10 @@ print(wf_filelist[0])
 
 if data_config["filetype"] == '.txt':
     wf_test = np.loadtxt(wf_filelist[0])
+    lenData = len(wf_test)
+
+elif ".npy" in wf_filelist[0]:
+    wf_test = np.load(wf_filelist[0])
     lenData = len(wf_test)
 
 else:

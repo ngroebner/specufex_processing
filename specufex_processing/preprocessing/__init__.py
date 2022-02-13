@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import obspy
+from sklearn.preprocessing import MinMaxScaler,RobustScaler,MaxAbsScaler,StandardScaler
+import matplotlib.pyplot as plt
 
 def dataframe2hdf(df, group):
     """Saves a pandas DataFrame to a group in an hdf5 file.
@@ -26,6 +28,35 @@ def dataframe2hdf(df, group):
         else:
             group.create_dataset(name=col, data=df[col])
 
+def normalize_waveform(waveforms,norm_scale='MaxAbsScaler',save_plot=True,path_to_save=None):
+    if norm_scale == 'MaxAbsScaler' :
+        scaler = MaxAbsScaler()
+    elif norm_scale == 'RobustScaler' :
+        scaler = RobustScaler()
+    elif norm_scale == 'StandardScaler' :
+        scaler = StandardScaler()
+    elif norm_scale == 'MinMaxScaler':
+        scaler = MinMaxScaler((-1,1))
+    else :
+        print(f'Waveform normalization {norm_scale} not recognized, please use MaxAbsScaler, MinMaxScaler((-1,1)),RobustScaler,StandardScaler')
+    scaler.fit(np.transpose(waveforms- np.mean(waveforms, axis=1)[:,np.newaxis]))
+    norm_waveforms = np.transpose(scaler.transform(np.transpose(waveforms)))
+
+    if save_plot :
+        plt.ioff()
+        plt.figure(figsize=(15, 14))
+        plt.title(f"Input dataset")
+        plt.pcolormesh(norm_waveforms,cmap=plt.cm.RdBu)
+        plt.colorbar(label='Normalized Amplitude')
+        plt.xlabel("Waveform Time")
+        plt.ylabel("Waveform Count")
+        plt.tight_layout()
+        plt.savefig(path_to_save+'_Plot_Waveform.png')
+        plt.close()
+        plt.ion()
+
+    return norm_waveforms
+
 
 def load_wf(filename, lenData, channel_ID=None):
     """Loads a waveform file and returns the data.
@@ -39,8 +70,11 @@ def load_wf(filename, lenData, channel_ID=None):
     channel_ID: int
         If the fileis an obspy stream, this is the desired channel.
     """
+    print(filename)
     if ".txt" in filename:
         data = np.loadtxt(filename)
+    elif ".npy" in filename:
+        data = np.load(filename)
     else: #catch loading errors
         st = obspy.read(filename)
         ### REMOVE RESPONSE ??

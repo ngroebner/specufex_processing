@@ -13,7 +13,7 @@ class SpectrogramMaker:
 
     def __init__(self,fs,nperseg,noverlap,nfft,
                        mode,scaling,
-                       trim=False,fmin=None,fmax=None):
+                       trim=False,fmin=None,fmax=None,norm_waveforms=True):
         self.fs = fs
         self.nperseg = nperseg
         self.noverlap = noverlap
@@ -23,8 +23,10 @@ class SpectrogramMaker:
         self.trim = trim
         self.fmin = fmin
         self.fmax = fmax
+        self.norm_waveforms=norm_waveforms
 
-    def __call__(self, waveform):
+    def __call__(self, waveform, normalize=None):
+
         """Converts a waveform into a transformed spectrogram
         Returns
         -------
@@ -33,6 +35,15 @@ class SpectrogramMaker:
             STFT_0 - the original, non-transformed spectrogram
 
         """
+
+        if normalize == None :
+            normalize = self.norm_waveforms
+            #print(f'Using {self.norm_waveforms} for normalization')
+
+        ##### Normalize each waveform #####
+        if normalize:
+            waveform = waveform / np.abs(waveform).max()
+
         fSTFT, tSTFT, STFT_raw = spectrogram(waveform,fs=self.fs,nperseg=self.nperseg,
                                             noverlap=self.noverlap,nfft=self.nfft,
                                             scaling=self.scaling,axis=-1,mode=self.mode)
@@ -104,6 +115,7 @@ def create_spectrograms(
     nfft,
     fmin,
     fmax,
+    norm_waveforms=True
 ):
     """Create spectrograms from h5 file
     """
@@ -126,10 +138,17 @@ def create_spectrograms(
         mode='magnitude'
         scaling='spectrum'
 
-        spectmaker = SpectrogramMaker(fs=fs,nperseg=nperseg,
-                            noverlap=noverlap,nfft=nfft,
-                            mode=mode,scaling=scaling,
-                            trim=True,fmin=fmin,fmax=fmax)
+        spectmaker = SpectrogramMaker(
+            fs=fs,
+            nperseg=nperseg,
+            noverlap=noverlap,
+            nfft=nfft,
+            mode=mode,
+            scaling=scaling,
+            trim=True,
+            fmin=fmin,
+            fmax=fmax,
+            norm_waveforms=norm_waveforms)
 
         badevIDs = []
         evIDs = []
@@ -138,16 +157,20 @@ def create_spectrograms(
         for evID in fileLoad[f'waveforms/{station}/{channel}'].keys():
             waveform = fileLoad[f'waveforms/{station}/{channel}/{evID}'][:]
             STFT, STFT_0 = spectmaker(waveform)
+
             if np.any(np.isnan(STFT)) \
                     or np.any(STFT)==np.inf \
                     or np.any(STFT)==-np.inf \
                     or STFT.sum()==0:
-
                 badevIDs.append(evID)
                 # if you get a bad one, fill with zeros
                 # this is to preserve ordering
                 STFT = np.zeros_like(STFT)
                 print(f"evID {evID} set to zero, bad data")
+            """if np.median(STFT_0) == 0:
+                print(f"Zero median: evID {evID}")
+            if np.all(STFT==0):
+                print(f"STFT all zero: evID {evID}")"""
             evIDs.append(evID)
             spects.append(STFT)
             raw_spects.append(STFT_0)
