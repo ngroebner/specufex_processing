@@ -9,6 +9,7 @@ import h5py
 import numpy as np
 import time
 import yaml
+from tqdm import tqdm, trange
 
 from specufex import BayesianNonparametricNMF, BayesianHMM
 from specufex_processing.utils import (
@@ -75,15 +76,16 @@ specparams = config["specufexParams"]
 t_nmf0 = time.time()
 print('Running NMF')
 nmf = BayesianNonparametricNMF(X.shape, num_pat=specparams["N_patterns_NMF"])
-for i in range(specparams["nmf_nbatch"]):
+for i in trange(specparams["nmf_nbatch"]):
     # pick random sample
-    print(f"Batch {i}")
+    #print(f"Batch {i}")
     sample = np.random.choice(
         X.shape[0],
         specparams["nmf_batchsz"],
         replace=False
     )
-    nmf.fit(X[sample], verbose=1)
+    nmf.fit(X[sample], verbose=0)
+    tqdm.write(len(nmf.A1))
 
 print("Calculating ACMs.")
 
@@ -118,8 +120,8 @@ with h5py.File(SpecUFEx_H5_path,'a') as fileLoad:
 t_hmm0 = time.time()
 print('Running HMM')
 hmm = BayesianHMM(nmf.num_pat, nmf.gain, num_state=specparams["N_states_HMM"])
-for i in range(specparams["hmm_nbatch"]):
-    print(f"Batch {i}")
+for i in trange(specparams["hmm_nbatch"]):
+    #print(f"Batch {i}")
 
     sample = np.random.choice(
         Vs.shape[0],

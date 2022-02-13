@@ -7,6 +7,8 @@ from specufex_processing.utils import (
     _overwrite_dataset_if_exists
 )
 
+import tqdm
+
 np.seterr(all='raise')
 
 class SpectrogramMaker:
@@ -154,7 +156,7 @@ def create_spectrograms(
         evIDs = []
         spects = []
         raw_spects = []
-        for evID in fileLoad[f'waveforms/{station}/{channel}'].keys():
+        for evID in tqdm.tqdm(fileLoad[f'waveforms/{station}/{channel}'].keys()):
             waveform = fileLoad[f'waveforms/{station}/{channel}/{evID}'][:]
             STFT, STFT_0 = spectmaker(waveform)
 
